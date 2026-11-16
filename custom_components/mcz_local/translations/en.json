@@ -1,0 +1,19 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Already configured. Only a single configuration possible."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "port": "Port"
+        },
+        "data_description": {
+          "port": "TCP port on which this integration waits for the stove. Your router must redirect the stove's cloud connection to this port."
+        },
+        "description": "The stove connects to this server instead of the MCZ cloud.",
+        "title": "MCZ Maestro (local)"
+      }
+    }
+  }
+}

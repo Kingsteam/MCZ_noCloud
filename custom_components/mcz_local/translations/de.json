@@ -1,0 +1,19 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Bereits eingerichtet. Es ist nur eine Einrichtung möglich."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "port": "Port"
+        },
+        "data_description": {
+          "port": "TCP-Port, auf dem diese Integration auf den Ofen wartet. Der Router muss die Cloud-Verbindung des Ofens auf diesen Port umleiten."
+        },
+        "description": "Der Ofen verbindet sich mit diesem Server statt mit der MCZ-Cloud.",
+        "title": "MCZ Maestro (lokal)"
+      }
+    }
+  }
+}
