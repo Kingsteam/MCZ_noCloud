@@ -18,17 +18,58 @@
   },
   "entity": {
     "binary_sensor": {
-      "connected": {
-        "name": "Verbunden"
-      },
       "burning": {
         "name": "In Betrieb"
+      },
+      "connected": {
+        "name": "Verbunden"
       },
       "error": {
         "name": "Störung"
       }
     },
+    "climate": {
+      "stove": {
+        "name": "Ofen"
+      }
+    },
     "sensor": {
+      "ambient_temperature": {
+        "name": "Raumtemperatur"
+      },
+      "boiler_temperature": {
+        "name": "Wassertemperatur"
+      },
+      "fume_fan_rpm": {
+        "name": "Abgasgebläse"
+      },
+      "fume_temperature": {
+        "name": "Abgastemperatur"
+      },
+      "hours_to_service": {
+        "name": "Stunden bis Wartung"
+      },
+      "ignitions": {
+        "name": "Zündungen"
+      },
+      "motherboard_temperature": {
+        "name": "Platinentemperatur"
+      },
+      "operating_hours": {
+        "name": "Betriebsstunden"
+      },
+      "power_level": {
+        "name": "Leistungsstufe"
+      },
+      "puffer_temperature": {
+        "name": "Puffertemperatur"
+      },
+      "pump_pwm": {
+        "name": "Pumpe"
+      },
+      "return_temperature": {
+        "name": "Rücklauftemperatur"
+      },
       "state": {
         "name": "Zustand",
         "state": {
@@ -65,50 +106,54 @@
       "state_code": {
         "name": "Zustandsnummer"
       },
-      "boiler_temperature": {
-        "name": "Wassertemperatur"
-      },
-      "ambient_temperature": {
-        "name": "Raumtemperatur"
-      },
       "temperature_setpoint": {
         "name": "Solltemperatur"
+      }
+    },
+    "switch": {
+      "chronostat": {
+        "name": "Chrono"
       },
-      "fume_temperature": {
-        "name": "Abgastemperatur"
+      "eco_mode": {
+        "name": "Eco"
       },
-      "return_temperature": {
-        "name": "Rücklauftemperatur"
-      },
-      "puffer_temperature": {
-        "name": "Puffertemperatur"
-      },
-      "motherboard_temperature": {
-        "name": "Platinentemperatur"
-      },
-      "power_level": {
-        "name": "Leistungsstufe"
-      },
-      "pump_pwm": {
-        "name": "Pumpe"
-      },
-      "fume_fan_rpm": {
-        "name": "Abgasgebläse"
-      },
-      "ignitions": {
-        "name": "Zündungen"
-      },
-      "operating_hours": {
-        "name": "Betriebsstunden"
-      },
-      "hours_to_service": {
-        "name": "Stunden bis Wartung"
+      "sound_effects": {
+        "name": "Töne"
       }
     }
   },
   "exceptions": {
+    "not_connected": {
+      "message": "Der Ofen ist nicht verbunden. Befehl nicht gesendet."
+    },
     "port_in_use": {
       "message": "Port {port} lässt sich nicht öffnen ({error}). Benutzt ein anderes Programm diesen Port?"
+    },
+    "setpoint_out_of_range": {
+      "message": "Die Solltemperatur muss zwischen {min} und {max} °C liegen."
+    },
+    "stove_error": {
+      "message": "Der Ofen meldet eine Störung. Bitte zuerst am Ofen quittieren."
+    },
+    "too_soon": {
+      "message": "Schutz gegen Takten: Der Ofen darf erst in {minutes} Minuten wieder eingeschaltet werden."
+    }
+  },
+  "options": {
+    "error": {
+      "sensor_not_registered": "Dieser Fühler hat keine eindeutige ID und kann nicht verwendet werden."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "room_sensor": "Raumtemperatur-Fühler"
+        },
+        "data_description": {
+          "room_sensor": "Leer lassen, um den Fühler im Ofen zu verwenden."
+        },
+        "description": "Optional: einen eigenen Raumfühler für das Thermostat verwenden. Der Fühler im Ofen sitzt nah an der Wärme und misst oft zu hoch.",
+        "title": "Optionen"
+      }
     }
   }
 }

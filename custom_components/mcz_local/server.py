@@ -20,6 +20,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
 from . import protocol as P
+from .const import MIN_WRITE_GAP_S
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +39,10 @@ OP_PONG = 0xA
 
 class HandshakeError(Exception):
     """Anfrage ist kein gültiger Socket.IO-Verbindungsaufbau."""
+
+
+class NotConnectedError(Exception):
+    """Kein Ofen verbunden, Befehl kann nicht gesendet werden."""
 
 
 @dataclass
@@ -221,6 +226,9 @@ class McZServer:
         self._conn: StoveConnection | None = None
         self._sessions: set[str] = set()
         self._listeners: list[Callable[[], None]] = []
+        self._write_lock = asyncio.Lock()
+        self._last_write = 0.0  # time.monotonic() des letzten Schreibbefehls
+        self.write_gap = MIN_WRITE_GAP_S
 
     # Lebenszyklus
     async def start(self) -> None:
@@ -236,6 +244,27 @@ class McZServer:
             self._server.close()
             await self._server.wait_closed()
         self._server = None
+
+    # Befehle
+    async def async_write(self, param_id: int, value: int) -> None:
+        """Schreibbefehl senden. Nur freigegebene IDs (build_write prüft das),
+        höchstens ein Befehl je write_gap Sekunden. Der Ofen antwortet mit einer
+        vollständigen Statuszeile, die über on_answer ankommt."""
+        richiesta = P.build_write(param_id, value)
+        async with self._write_lock:
+            if self._conn is None or not self.status.connected:
+                raise NotConnectedError
+            wait = self._last_write + self.write_gap - time.monotonic()
+            if wait > 0:
+                await asyncio.sleep(wait)
+            if self._conn is None:
+                raise NotConnectedError
+            _LOGGER.info("Befehl an den Ofen: %s", richiesta)
+            try:
+                await self._conn.send_request(richiesta)
+            except (ConnectionError, RuntimeError) as err:
+                raise NotConnectedError from err
+            self._last_write = time.monotonic()
 
     # Beobachter
     def add_listener(self, cb: Callable[[], None]) -> Callable[[], None]:

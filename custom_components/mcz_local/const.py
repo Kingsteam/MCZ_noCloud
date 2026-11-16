@@ -15,6 +15,17 @@ DEFAULT_PORT: Final = 9000
 # Auf allen Adressen lauschen; der Router leitet nur den Ofen hierher um
 LISTEN_HOST: Final = "0.0.0.0"
 
+CONF_ROOM_SENSOR: Final = "room_sensor"  # Entitätsregister-ID, nicht entity_id
+
+# Parameter-IDs der Schreibbefehle (WriteParametri)
+CMD_POWER: Final = 34  # Ein/Aus - nur aus Community-Angaben, nicht im Mitschnitt
+POWER_ON: Final = 1
+POWER_OFF: Final = 40
+CMD_ECO: Final = 41
+CMD_SETPOINT: Final = 42  # Wert = Grad mal 2
+CMD_SOUND: Final = 50
+CMD_CHRONO: Final = 1111
+
 # Abfrage-Takt für den Status („RecuperoInfo“), Sekunden
 POLL_INTERVAL_S: Final = 10
 

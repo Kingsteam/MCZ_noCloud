@@ -16,9 +16,15 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 
 from .const import CONF_PORT, DEFAULT_PORT, DOMAIN, LISTEN_HOST, POLL_INTERVAL_S
+from .control import StoveController
 from .server import McZServer
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [
+    Platform.BINARY_SENSOR,
+    Platform.CLIMATE,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
 @dataclass
@@ -26,6 +32,7 @@ class McZData:
     """Laufzeitdaten eines Eintrags."""
 
     server: McZServer
+    controller: StoveController
 
 
 type McZConfigEntry = ConfigEntry[McZData]
@@ -44,7 +51,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: McZConfigEntry) -> bool:
             translation_key="port_in_use",
             translation_placeholders={"port": str(server.port), "error": str(err)},
         ) from err
-    entry.runtime_data = McZData(server=server)
+    controller = StoveController(hass, server, entry.entry_id)
+    await controller.async_load()
+    entry.async_on_unload(server.add_listener(controller.observe))
+    entry.runtime_data = McZData(server=server, controller=controller)
 
     async def _stop(_event: Event) -> None:
         await server.stop()

@@ -18,17 +18,58 @@
   },
   "entity": {
     "binary_sensor": {
-      "connected": {
-        "name": "Connected"
-      },
       "burning": {
         "name": "Running"
+      },
+      "connected": {
+        "name": "Connected"
       },
       "error": {
         "name": "Fault"
       }
     },
+    "climate": {
+      "stove": {
+        "name": "Stove"
+      }
+    },
     "sensor": {
+      "ambient_temperature": {
+        "name": "Room temperature"
+      },
+      "boiler_temperature": {
+        "name": "Water temperature"
+      },
+      "fume_fan_rpm": {
+        "name": "Flue gas fan"
+      },
+      "fume_temperature": {
+        "name": "Flue gas temperature"
+      },
+      "hours_to_service": {
+        "name": "Hours until service"
+      },
+      "ignitions": {
+        "name": "Ignitions"
+      },
+      "motherboard_temperature": {
+        "name": "Mainboard temperature"
+      },
+      "operating_hours": {
+        "name": "Operating hours"
+      },
+      "power_level": {
+        "name": "Power level"
+      },
+      "puffer_temperature": {
+        "name": "Buffer tank temperature"
+      },
+      "pump_pwm": {
+        "name": "Pump"
+      },
+      "return_temperature": {
+        "name": "Return temperature"
+      },
       "state": {
         "name": "State",
         "state": {
@@ -65,50 +106,54 @@
       "state_code": {
         "name": "State code"
       },
-      "boiler_temperature": {
-        "name": "Water temperature"
-      },
-      "ambient_temperature": {
-        "name": "Room temperature"
-      },
       "temperature_setpoint": {
         "name": "Target temperature"
+      }
+    },
+    "switch": {
+      "chronostat": {
+        "name": "Chrono"
       },
-      "fume_temperature": {
-        "name": "Flue gas temperature"
+      "eco_mode": {
+        "name": "Eco"
       },
-      "return_temperature": {
-        "name": "Return temperature"
-      },
-      "puffer_temperature": {
-        "name": "Buffer tank temperature"
-      },
-      "motherboard_temperature": {
-        "name": "Mainboard temperature"
-      },
-      "power_level": {
-        "name": "Power level"
-      },
-      "pump_pwm": {
-        "name": "Pump"
-      },
-      "fume_fan_rpm": {
-        "name": "Flue gas fan"
-      },
-      "ignitions": {
-        "name": "Ignitions"
-      },
-      "operating_hours": {
-        "name": "Operating hours"
-      },
-      "hours_to_service": {
-        "name": "Hours until service"
+      "sound_effects": {
+        "name": "Sounds"
       }
     }
   },
   "exceptions": {
+    "not_connected": {
+      "message": "The stove is not connected. Command not sent."
+    },
     "port_in_use": {
       "message": "Port {port} cannot be opened ({error}). Is another program using it?"
+    },
+    "setpoint_out_of_range": {
+      "message": "Target temperature must be between {min} and {max} °C."
+    },
+    "stove_error": {
+      "message": "The stove reports a fault. Clear the fault at the stove first."
+    },
+    "too_soon": {
+      "message": "Anti-cycling protection: the stove may be switched on again in {minutes} minutes."
+    }
+  },
+  "options": {
+    "error": {
+      "sensor_not_registered": "This sensor has no unique ID and cannot be used."
+    },
+    "step": {
+      "init": {
+        "data": {
+          "room_sensor": "Room temperature sensor"
+        },
+        "data_description": {
+          "room_sensor": "Leave empty to use the stove's own sensor."
+        },
+        "description": "Optional: use a room temperature sensor of your own for the thermostat. The sensor inside the stove sits close to the heat and often reads too high.",
+        "title": "Options"
+      }
     }
   }
 }

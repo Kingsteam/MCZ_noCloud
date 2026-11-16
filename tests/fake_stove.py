@@ -45,6 +45,7 @@ class FakeStove:
         self.port = port
         self.fields = dict(DEFAULT_FIELDS if fields is None else fields)
         self.requests: list[str] = []
+        self.writes: list[tuple[int, int]] = []
         self.got_connect = asyncio.Event()
         self.got_pong = asyncio.Event()
         self._reader: asyncio.StreamReader | None = None
@@ -122,7 +123,11 @@ class FakeStove:
     async def _answer(self, payload: dict) -> None:
         req = payload["richiesta"]
         self.requests.append(req)
-        info = req == "C|C|RecuperoInfo"
+        if req.startswith("C|C|WriteParametri|"):
+            pid, val = (int(x) for x in req.split("|")[3:5])
+            self.writes.append((pid, val))
+            self.apply_write(pid, val)
+        info = req == "C|C|RecuperoInfo" or req.startswith("C|C|WriteParametri|")
         answer = make_info_line(self.fields) if info else "00|00"
         await self.send(
             P.sio_event(
@@ -133,6 +138,16 @@ class FakeStove:
                 },
             )
         )
+
+    def apply_write(self, pid: int, val: int) -> None:
+        """Wie der echte Ofen: Wert übernehmen (Antwort ist die Statuszeile)."""
+        if pid == 34:
+            self.fields[1] = 3 if val == 1 else 40
+        elif pid == 42:
+            self.fields[26] = val
+        else:
+            field = {41: 23, 50: 49, 1111: 25}[pid]
+            self.fields[field] = val
 
     async def close(self) -> None:
         if self._writer:
