@@ -16,6 +16,96 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Verbunden"
+      },
+      "burning": {
+        "name": "In Betrieb"
+      },
+      "error": {
+        "name": "Störung"
+      }
+    },
+    "sensor": {
+      "state": {
+        "name": "Zustand",
+        "state": {
+          "auto_eco": "Auto-Eco",
+          "check": "Prüfung",
+          "cleaning_cold": "Reinigung kalt",
+          "cleaning_high": "Reinigung hoch",
+          "cleaning_hot": "Reinigung heiß",
+          "cleaning_low": "Reinigung niedrig",
+          "cooling": "Abkühlen",
+          "diagnostics": "Diagnose",
+          "error": "Störung",
+          "filling_auger": "Schnecke befüllen",
+          "loading_cold": "Pellets laden kalt",
+          "loading_hot": "Pellets laden heiß",
+          "off": "Aus",
+          "on": "Ein",
+          "power1": "Leistung 1",
+          "power2": "Leistung 2",
+          "power3": "Leistung 3",
+          "power4": "Leistung 4",
+          "power5": "Leistung 5",
+          "stabilising": "Stabilisierung",
+          "standby": "Standby",
+          "start1_cold": "Start 1 kalt",
+          "start1_hot": "Start 1 heiß",
+          "start2_cold": "Start 2 kalt",
+          "start2_hot": "Start 2 heiß",
+          "switching_off": "Abschalten",
+          "unknown": "Unbekannt",
+          "unlocking_auger": "Schnecke entsperren"
+        }
+      },
+      "state_code": {
+        "name": "Zustandsnummer"
+      },
+      "boiler_temperature": {
+        "name": "Wassertemperatur"
+      },
+      "ambient_temperature": {
+        "name": "Raumtemperatur"
+      },
+      "temperature_setpoint": {
+        "name": "Solltemperatur"
+      },
+      "fume_temperature": {
+        "name": "Abgastemperatur"
+      },
+      "return_temperature": {
+        "name": "Rücklauftemperatur"
+      },
+      "puffer_temperature": {
+        "name": "Puffertemperatur"
+      },
+      "motherboard_temperature": {
+        "name": "Platinentemperatur"
+      },
+      "power_level": {
+        "name": "Leistungsstufe"
+      },
+      "pump_pwm": {
+        "name": "Pumpe"
+      },
+      "fume_fan_rpm": {
+        "name": "Abgasgebläse"
+      },
+      "ignitions": {
+        "name": "Zündungen"
+      },
+      "operating_hours": {
+        "name": "Betriebsstunden"
+      },
+      "hours_to_service": {
+        "name": "Stunden bis Wartung"
+      }
+    }
+  },
   "exceptions": {
     "port_in_use": {
       "message": "Port {port} lässt sich nicht öffnen ({error}). Benutzt ein anderes Programm diesen Port?"

@@ -16,6 +16,96 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      },
+      "burning": {
+        "name": "Running"
+      },
+      "error": {
+        "name": "Fault"
+      }
+    },
+    "sensor": {
+      "state": {
+        "name": "State",
+        "state": {
+          "auto_eco": "Auto eco",
+          "check": "Checking",
+          "cleaning_cold": "Cleaning (cold)",
+          "cleaning_high": "Cleaning (high)",
+          "cleaning_hot": "Cleaning (hot)",
+          "cleaning_low": "Cleaning (low)",
+          "cooling": "Cooling down",
+          "diagnostics": "Diagnostics",
+          "error": "Error",
+          "filling_auger": "Filling auger",
+          "loading_cold": "Loading pellets (cold)",
+          "loading_hot": "Loading pellets (hot)",
+          "off": "Off",
+          "on": "On",
+          "power1": "Power 1",
+          "power2": "Power 2",
+          "power3": "Power 3",
+          "power4": "Power 4",
+          "power5": "Power 5",
+          "stabilising": "Stabilising",
+          "standby": "Standby",
+          "start1_cold": "Start 1 (cold)",
+          "start1_hot": "Start 1 (hot)",
+          "start2_cold": "Start 2 (cold)",
+          "start2_hot": "Start 2 (hot)",
+          "switching_off": "Switching off",
+          "unknown": "Unknown",
+          "unlocking_auger": "Unlocking auger"
+        }
+      },
+      "state_code": {
+        "name": "State code"
+      },
+      "boiler_temperature": {
+        "name": "Water temperature"
+      },
+      "ambient_temperature": {
+        "name": "Room temperature"
+      },
+      "temperature_setpoint": {
+        "name": "Target temperature"
+      },
+      "fume_temperature": {
+        "name": "Flue gas temperature"
+      },
+      "return_temperature": {
+        "name": "Return temperature"
+      },
+      "puffer_temperature": {
+        "name": "Buffer tank temperature"
+      },
+      "motherboard_temperature": {
+        "name": "Mainboard temperature"
+      },
+      "power_level": {
+        "name": "Power level"
+      },
+      "pump_pwm": {
+        "name": "Pump"
+      },
+      "fume_fan_rpm": {
+        "name": "Flue gas fan"
+      },
+      "ignitions": {
+        "name": "Ignitions"
+      },
+      "operating_hours": {
+        "name": "Operating hours"
+      },
+      "hours_to_service": {
+        "name": "Hours until service"
+      }
+    }
+  },
   "exceptions": {
     "port_in_use": {
       "message": "Port {port} cannot be opened ({error}). Is another program using it?"
