@@ -28,11 +28,6 @@
         "name": "Fault"
       }
     },
-    "climate": {
-      "stove": {
-        "name": "Stove"
-      }
-    },
     "sensor": {
       "ambient_temperature": {
         "name": "Room temperature"

@@ -2,7 +2,7 @@
 
 Home-Assistant-Integration für MCZ-Pelletöfen mit Maestro-WLAN-Modul, **ohne MCZ-Cloud**.
 
-> ⚠️ **Frühe Entwicklung, nur lesen.** Sensoren ja, Schalten noch nicht.
+> ⚠️ **Frühe Entwicklung.** Lesen und Schalten sind eingebaut. **Schalten ist nur simuliert getestet**, noch nicht am echten Ofen.
 > Lesen ist **mit einem echten Ofen getestet** (MCZ Musa Hydro, Maestro-Modul Firmware 1.2.5): Werte stimmen mit der Anzeige am Ofen. Die Home-Assistant-Integration selbst lief dabei noch nicht auf echter Hardware, sondern derselbe Server-Code auf einem Rechner.
 
 Bedienung: [docs/HANDBUCH.md](docs/HANDBUCH.md)

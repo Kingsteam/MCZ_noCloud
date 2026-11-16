@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-16
+### Hinzugefügt
+- Thermostat „Pelletofen“: Ein/Aus und Solltemperatur (5–30 °C, halbe Grad).
+- Schalter Eco, Chrono und Töne.
+- Schutzgrenzen für alle Befehle: nur bei Verbindung, nicht bei Störung, höchstens ein Befehl pro Sekunde, nach dem Ausgehen 30 Minuten Pause vor dem nächsten Einschalten (übersteht Neustarts).
+- Option: eigener Raumfühler als Ist-Temperatur des Thermostats.
+### Wichtig
+- Schaltbefehle sind nur simuliert getestet. Der Befehl Ein/Aus (Parameter 34) stammt aus Community-Angaben und ist noch nicht am echten Ofen bestätigt.
+
 ## [0.3.0] - 2026-11-16
 ### Hinzugefügt
 - Gerät „Pelletofen“ mit Seriennummer und Firmware des Moduls.

@@ -64,6 +64,10 @@ def main() -> None:
         " | select('search', 'zustand$|wassertemperatur|abgastemperatur')"
         " | join(',') }}",
     )
+    climate = template(
+        tok,
+        "{{ integration_entities('mcz_local') | select('match', 'climate') | first }}",
+    )
     hass_tokens = {
         "access_token": tok["access_token"],
         "token_type": "Bearer",
@@ -97,6 +101,22 @@ def main() -> None:
             page.wait_for_timeout(8000)
             page.screenshot(path=str(ZIEL / name))
             print("gespeichert:", ZIEL / name)
+
+        # Thermostat-Dialog (Mehr-Infos) über die URL öffnen
+        page.goto(
+            f"{BASE}/config/devices/device/{device_id}?more-info-entity-id={climate}"
+        )
+        page.wait_for_timeout(8000)
+        page.screenshot(path=str(ZIEL / "thermostat.png"))
+        print("gespeichert:", ZIEL / "thermostat.png")
+
+        # Optionen-Dialog: Zahnrad der Integration
+        page.goto(f"{BASE}/config/integrations/integration/mcz_local")
+        page.wait_for_timeout(6000)
+        page.get_by_role("button", name="Konfigurieren").first.click()
+        page.wait_for_timeout(4000)
+        page.screenshot(path=str(ZIEL / "optionen.png"))
+        print("gespeichert:", ZIEL / "optionen.png")
         browser.close()
 
 

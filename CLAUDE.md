@@ -24,8 +24,11 @@ Home-Assistant-Integration, die einen MCZ-Pelletofen mit Maestro-WLAN-Modul **oh
 | `custom_components/mcz_local/entity.py` | Basis-Entität: hört auf den Server, verfügbar nur bei Verbindung; Gerät mit Kennung = Config-Eintrag |
 | `custom_components/mcz_local/sensor.py` | Sensoren; optionale Fühler (Rücklauf, Puffer) erst anlegen, wenn ein Wert kommt |
 | `custom_components/mcz_local/binary_sensor.py` | Verbunden (immer verfügbar), In Betrieb, Störung |
+| `custom_components/mcz_local/control.py` | **Einzige Stelle für Befehle** (`StoveController`): Verbindung, Störung, Takt-Sperre (`last_stop` im `Store`), Sollwert-Grenzen, Fehlermeldungen übersetzt |
+| `custom_components/mcz_local/climate.py` | Thermostat (Ein/Aus, Sollwert; Ist-Temperatur optional vom eigenen Raumfühler) |
+| `custom_components/mcz_local/switch.py` | Eco, Chrono, Töne |
 | `custom_components/mcz_local/icons.json` | Symbole der Entitäten |
-| `custom_components/mcz_local/config_flow.py` | Einrichtung über die Oberfläche (Port), nur ein Eintrag |
+| `custom_components/mcz_local/config_flow.py` | Einrichtung über die Oberfläche (Port), nur ein Eintrag; Optionen: eigener Raumfühler, gespeichert als **Register-ID** (`OptionsFlowWithReload`) |
 | `custom_components/mcz_local/brand/` | Logo `icon.png` (256 px), `icon@2x.png` (512 px) |
 | `custom_components/mcz_local/strings.json`, `translations/` | Texte (Schlüssel nur `[a-z0-9-_]`) |
 | `tests/` | pytest mit `pytest-homeassistant-custom-component` |
@@ -48,6 +51,10 @@ HA-Version beim Nutzer: 2026.11 (Stand 16.11.2026). Die Version von `pytest-home
 Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → GitHub-Prüfungen abwarten → nur bei Grün per Fast-Forward nach `main`. Commit-Texte auf Deutsch. Release: `release.yml` per `workflow_dispatch` auf `main` (liest Version aus `manifest.json`, Text aus `CHANGELOG.md`).
 
 ## Stolperfallen
+- `er.async_validate_entity_id` liefert die entity_id zurück, nicht die Register-ID. Register-ID über `registry.async_get(entity_id).id`.
+- Climate ohne eigenen Namen: `name=None` und **kein** `translation_key`, sonst heißt die Entität „Pelletofen Ofen“.
+- Schreibbefehle in Tests: `server.write_gap = 0` setzen; Takt-Sperre mit zurückdatiertem `controller.last_stop` testen statt Uhr vorspulen (Server wartet mit `asyncio.sleep`).
+- Der Ofen antwortet auf `WriteParametri` direkt mit einer vollständigen `01|…`-Statuszeile.
 - `device_registry.async_get_device` ist veraltet (Fehler in Tests): `dr.async_entries_for_config_entry` verwenden.
 - Test-Instanz: HA aus dem Konfigurationsordner starten (sonst fehlt `mcz_sim`); HTTP-Port-Änderung muss seit HA 2026.11 per WebSocket `http/config/promote` bestätigt werden. Details in `devtools/testinstanz/README.md`.
 - Entitätsnamen in `strings.json` (Englisch) und `translations/de.json`; Auswahl-Optionen des Zustands = `protocol.STATES` + `error`, `unknown` (Test prüft das).
@@ -63,4 +70,5 @@ Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → 
 - Phase 1 (Grundgerüst, Protokoll, Tests) fertig.
 - Phase 2 (Server in der Integration, simulierter Ofen) fertig.
 - Phase 3 (Sensoren, Binärsensoren, Test-Instanz, Handbuch) fertig, Version 0.3.0.
+- Phase 4 (Schalten mit Schutzgrenzen, Raumfühler-Option) fertig, Version 0.4.0, **nur simuliert getestet**. Befehl 34 (Ein/Aus) nicht im Mitschnitt bestätigt.
 - Lesetest mit echtem Ofen erfolgreich (Server-Code auf einem Rechner, nicht in HA): Werte stimmen. Integration selbst noch nicht auf echter Hardware. Raumfühler im Ofen misst zu hoch → Heizungssteuerung mit externen Fühlern. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**

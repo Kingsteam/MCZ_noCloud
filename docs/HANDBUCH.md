@@ -1,6 +1,6 @@
 # Handbuch: MCZ Maestro lokal (ohne Cloud)
 
-> ⚠️ **Stand 0.3.0: nur lesen.** Die Integration zeigt Werte des Ofens an, schalten kann sie noch nicht. Das Lesen ist mit einem echten Ofen getestet (Werte stimmen mit der Ofenanzeige), die Integration als Ganzes noch nicht. Alle Bilder stammen aus einer simulierten Test-Instanz.
+> ⚠️ **Stand 0.4.0.** Lesen und Schalten sind eingebaut. Schalten ist **nur simuliert getestet**, noch nicht am echten Ofen. Das Lesen ist mit einem echten Ofen getestet (Werte stimmen mit der Ofenanzeige), die Integration als Ganzes noch nicht. Alle Bilder stammen aus einer simulierten Test-Instanz.
 
 ## Was die Integration macht
 Das WLAN-Modul (Maestro) im Ofen meldet sich von selbst beim MCZ-Server. Wenn dein Router diese Verbindung auf Home Assistant umleitet, übernimmt diese Integration die Rolle des Servers. Home Assistant fragt dann alle 10 Sekunden den Zustand des Ofens ab. Eine Internetverbindung braucht es dafür nicht.
@@ -38,6 +38,26 @@ Das Gerät **Pelletofen** mit Seriennummer und Firmware des Moduls (werden bei d
 | Diagnose (Zustandsnummer, Leistungsstufe, Pumpe, Abgasgebläse, Platinentemperatur) | Rohwerte für die Fehlersuche |
 
 Ist der Ofen **nicht verbunden**, zeigen alle Werte „Nicht verfügbar“, nur *Verbunden* steht auf *Getrennt*.
+
+## Bedienen
+Das Thermostat **Pelletofen** schaltet den Ofen ein und aus und stellt die Solltemperatur ein (5 bis 30 °C in halben Grad). Dazu kommen die Schalter **Eco**, **Chrono** und **Töne**.
+
+![Thermostat](bilder/thermostat.png)
+
+**Schutzgrenzen** (fest eingebaut, nicht abschaltbar):
+- Befehle gehen nur raus, wenn der Ofen verbunden ist.
+- Meldet der Ofen eine Störung, schaltet Home Assistant ihn nicht ein. Die Störung muss zuerst am Ofen quittiert werden.
+- **Schutz gegen Takten:** Nach dem Ausgehen (egal ob durch Home Assistant, am Ofen selbst oder durch das Chrono) darf der Ofen erst nach **30 Minuten** wieder eingeschaltet werden. Home Assistant meldet sonst, wie lange es noch dauert. Die Sperre bleibt auch über einen Neustart von Home Assistant erhalten.
+- Höchstens ein Befehl pro Sekunde.
+
+**Achtung bei Chrono:** Ist Chrono am Ofen eingeschaltet, schaltet der Ofen zusätzlich nach seinem eigenen Zeitplan. Wenn Home Assistant steuern soll, Chrono ausschalten, damit nur eine Stelle steuert.
+
+## Eigener Raumfühler
+Unter *Einstellungen → Geräte & Dienste → MCZ Maestro lokal → Zahnrad (Konfigurieren)* lässt sich ein eigener Temperaturfühler wählen. Das Thermostat zeigt dann dessen Wert als Ist-Temperatur. Der Fühler im Ofen bleibt als eigener Sensor erhalten. Wird der Fühler später umbenannt, bleibt die Zuordnung bestehen.
+
+![Optionen](bilder/optionen.png)
+
+Hinweis: Der Ofen selbst regelt weiterhin nach seinem eingebauten Fühler. Der eigene Raumfühler ist vorerst nur Anzeige; die Regelung danach kommt mit der Heizungssteuerung.
 
 ## Verlauf
 Zustand und Temperaturen landen im Verlauf von Home Assistant, z. B. um zu sehen, wie oft der Ofen zündet:

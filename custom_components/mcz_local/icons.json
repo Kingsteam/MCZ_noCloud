@@ -31,6 +31,20 @@
       "state_code": {
         "default": "mdi:numeric"
       }
+    },
+    "switch": {
+      "chronostat": {
+        "default": "mdi:calendar-clock"
+      },
+      "eco_mode": {
+        "default": "mdi:leaf"
+      },
+      "sound_effects": {
+        "default": "mdi:volume-high",
+        "state": {
+          "off": "mdi:volume-off"
+        }
+      }
     }
   }
 }

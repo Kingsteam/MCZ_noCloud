@@ -86,6 +86,15 @@ class SimStove:
                 self.fields[45] += 1
             await asyncio.sleep(wait)
 
+    def apply_write(self, pid: int, val: int) -> None:
+        """Wie der echte Ofen auf Schreibbefehle reagieren."""
+        if pid == 34:
+            self.run_sequence(IGNITION if val == 1 else SHUTDOWN)
+        elif pid == 42:
+            self.fields[26] = val
+        elif pid in (41, 50, 1111):
+            self.fields[{41: 23, 50: 49, 1111: 25}[pid]] = val
+
     def fault(self) -> None:
         if self._sequence:
             self._sequence.cancel()
@@ -185,7 +194,14 @@ class SimStove:
                     return
                 if text.startswith('42["ProvaStufa"'):
                     payload = json.loads(text[2:])[1]
-                    if payload["richiesta"] == "C|C|RecuperoInfo":
+                    req = payload["richiesta"]
+                    if req.startswith("C|C|WriteParametri|"):
+                        pid, val = (int(x) for x in req.split("|")[3:5])
+                        _LOGGER.info("Simulator: Befehl %s = %s", pid, val)
+                        self.apply_write(pid, val)
+                    if req == "C|C|RecuperoInfo" or req.startswith(
+                        "C|C|WriteParametri|"
+                    ):
                         answer = {
                             "stringaRicevuta": self.info_line(),
                             "socketChiamata": payload.get("socketChiamata"),
@@ -212,7 +228,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             task.cancel()
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _stop)
-    hass.async_create_task(
-        async_load_platform(hass, Platform.BUTTON, DOMAIN, {}, config)
-    )
+    for platform in (Platform.BUTTON, Platform.SENSOR):
+        hass.async_create_task(async_load_platform(hass, platform, DOMAIN, {}, config))
     return True

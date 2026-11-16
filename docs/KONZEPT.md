@@ -32,7 +32,7 @@ Ofen (Maestro-Modul) ── TCP, Socket.IO v2 ──> [Router: Umleitung der Clo
 1. ✅ Grundgerüst, Protokoll-Modul, Tests, GitHub-Prüfungen
 2. ✅ Server im HA-Prozess + simulierter Ofen in den Tests
 3. ✅ Nur lesen: Sensoren, „verbunden“, Test-Instanz, Handbuch mit Bildschirmfotos
-4. Schalten: Climate und Schalter mit Schutzgrenzen (zuerst simuliert, dann gemeinsam am echten Ofen)
+4. ✅ (simuliert) Schalten: Climate und Schalter mit Schutzgrenzen (zuerst simuliert, dann gemeinsam am echten Ofen)
 5. Dauerbetrieb (Installation über den Marketplace) und `docs/NETZWERK.md`: allgemeine Anleitung zur Umleitung im Router (DNAT, bei gleichem Netz zusätzlich Masquerade) mit einem neutralen Beispiel, ohne echte Adressen
 6. Später: Heizungssteuerung nach Messphase. Raumtemperatur dabei aus einem oder mehreren **externen** Raumfühlern (der Fühler im Ofen misst zu hoch), z. B. Mittelwert oder Minimum mehrerer Räume.
 
