@@ -34,4 +34,9 @@ Ofen (Maestro-Modul) ── TCP, Socket.IO v2 ──> [Router: Umleitung der Clo
 3. ✅ Nur lesen: Sensoren, „verbunden“, Test-Instanz, Handbuch mit Bildschirmfotos
 4. Schalten: Climate und Schalter mit Schutzgrenzen (zuerst simuliert, dann gemeinsam am echten Ofen)
 5. Dauerbetrieb (Installation über den Marketplace) und `docs/NETZWERK.md`: allgemeine Anleitung zur Umleitung im Router (DNAT, bei gleichem Netz zusätzlich Masquerade) mit einem neutralen Beispiel, ohne echte Adressen
-6. Später: Heizungssteuerung nach Messphase
+6. Später: Heizungssteuerung nach Messphase. Raumtemperatur dabei aus einem oder mehreren **externen** Raumfühlern (der Fühler im Ofen misst zu hoch), z. B. Mittelwert oder Minimum mehrerer Räume.
+
+## Befunde aus dem Lesetest mit echtem Ofen
+- Ablauf wie im Mitschnitt: Polling-Handshake, WebSocket, `join`, Antworten auf `RecuperoInfo` alle 10 s.
+- Feldtabelle bestätigt (Zustand, Wasser-, Raum-, Soll-, Abgastemperatur, Eco, Chrono, Zündungen).
+- Schließt der Server die Verbindung, baut das Modul von selbst eine neue auf (ohne Stromlos-Machen).

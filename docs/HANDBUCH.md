@@ -1,6 +1,6 @@
 # Handbuch: MCZ Maestro lokal (ohne Cloud)
 
-> ⚠️ **Stand 0.3.0: nur lesen.** Die Integration zeigt Werte des Ofens an, schalten kann sie noch nicht. Noch **nicht mit echter Hardware getestet**. Alle Bilder stammen aus einer simulierten Test-Instanz.
+> ⚠️ **Stand 0.3.0: nur lesen.** Die Integration zeigt Werte des Ofens an, schalten kann sie noch nicht. Das Lesen ist mit einem echten Ofen getestet (Werte stimmen mit der Ofenanzeige), die Integration als Ganzes noch nicht. Alle Bilder stammen aus einer simulierten Test-Instanz.
 
 ## Was die Integration macht
 Das WLAN-Modul (Maestro) im Ofen meldet sich von selbst beim MCZ-Server. Wenn dein Router diese Verbindung auf Home Assistant umleitet, übernimmt diese Integration die Rolle des Servers. Home Assistant fragt dann alle 10 Sekunden den Zustand des Ofens ab. Eine Internetverbindung braucht es dafür nicht.
@@ -12,7 +12,8 @@ Das WLAN-Modul (Maestro) im Ofen meldet sich von selbst beim MCZ-Server. Wenn de
 2. *Einstellungen → Geräte & Dienste → Integration hinzufügen → „MCZ Maestro lokal“*.
 3. Port eingeben (Standard **9000**, wie beim MCZ-Server). Nur ändern, wenn auf Home Assistant schon etwas diesen Port benutzt; dann muss der Router auf den neuen Port umleiten.
 4. Umleitung im Router einrichten (Anleitung folgt in `docs/NETZWERK.md`).
-5. Der Ofen verbindet sich beim nächsten Verbindungsaufbau. Das kann einige Minuten dauern. Schneller geht es, wenn man den Ofen kurz stromlos macht.
+5. Die Umleitung wirkt nur auf **neue** Verbindungen. Den Ofen deshalb einmal kurz stromlos machen; danach meldet er sich innerhalb einer Minute.
+6. Wird die Umleitung wieder entfernt, verbindet sich der Ofen von selbst wieder mit der MCZ-Cloud, sobald diese Integration die Verbindung schließt (z. B. Integration deaktivieren).
 
 ![Integration](bilder/integration.png)
 
@@ -25,7 +26,7 @@ Das Gerät **Pelletofen** mit Seriennummer und Firmware des Moduls (werden bei d
 |---|---|
 | Zustand | Was der Ofen gerade macht, z. B. *Aus*, *Start 1 kalt*, *Leistung 2*, *Abkühlen*, *Störung* |
 | Wassertemperatur | Kesselwasser (Hydro-Öfen) |
-| Raumtemperatur | Fühler am Ofen |
+| Raumtemperatur | Fühler im Ofen. Achtung: Er sitzt nah an der Wärmequelle und kann deutlich zu hoch messen. Für Automationen besser einen eigenen Raumfühler verwenden |
 | Solltemperatur | am Ofen eingestellte Wunschtemperatur |
 | Abgastemperatur | im Abgasrohr |
 | Rücklauf-/Puffertemperatur | nur wenn der Fühler angeschlossen ist |

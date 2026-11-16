@@ -62,4 +62,5 @@ Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → 
 ## Stand
 - Phase 1 (Grundgerüst, Protokoll, Tests) fertig.
 - Phase 2 (Server in der Integration, simulierter Ofen) fertig.
-- Phase 3 (Sensoren, Binärsensoren, Test-Instanz, Handbuch) fertig, Version 0.3.0. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**
+- Phase 3 (Sensoren, Binärsensoren, Test-Instanz, Handbuch) fertig, Version 0.3.0.
+- Lesetest mit echtem Ofen erfolgreich (Server-Code auf einem Rechner, nicht in HA): Werte stimmen. Integration selbst noch nicht auf echter Hardware. Raumfühler im Ofen misst zu hoch → Heizungssteuerung mit externen Fühlern. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**
