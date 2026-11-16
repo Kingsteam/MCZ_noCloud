@@ -10,7 +10,7 @@ Home-Assistant-Integration, die einen MCZ-Pelletofen mit Maestro-WLAN-Modul **oh
 2. **Keine Geheimnisse, keine Hausdaten im Repo:** keine Tokens, IP-Adressen, Seriennummern, MAC-Adressen, Namen, Koordinaten, echten Entitätsnamen. Auch nicht in Tests, Beispielen, Bildschirmfotos, Commit-Texten. Testdaten sind erfunden (`tests/conftest.py: make_info_line`). Echte Mitschnitte bleiben außerhalb des Repos.
 3. **Sicherheitsgrenzen** stehen nur in `const.py` (Abschnitt SICHERHEIT) und werden in `tests/test_const.py` geprüft. Diese Tests nie abschwächen, überspringen oder löschen. Grenzen nur nach Rücksprache ändern.
 4. **Schaltbefehle am echten Ofen nur gemeinsam mit dem Nutzer** testen, kurz und begrenzt.
-5. **Fremdcode:** Das Projekt „maestrogateway“ steht unter GPL. Nichts daraus kopieren, nur Fakten (Feldpositionen) verwenden. Eigener Code steht unter MIT.
+5. **Fremdcode:** Das Projekt „maestrogateway“ steht unter GPL. Nichts daraus kopieren, nur Fakten (Feldpositionen) verwenden. Eigener Code steht unter Apache-2.0.
 6. Keinen Pull Request ohne ausdrücklichen Auftrag.
 
 ## Aufbau

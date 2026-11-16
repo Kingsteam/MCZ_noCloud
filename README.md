@@ -11,4 +11,4 @@ Das Maestro-Modul baut von sich aus eine unverschlüsselte Verbindung zum MCZ-Se
 Später über den Marketplace (früher HACS): *Einstellungen → Marketplace → eigenes Repository* mit dem Link zu diesem Repository.
 
 ## Lizenz
-MIT. Feldpositionen des Protokolls nach öffentlich dokumentierten Community-Beobachtungen und eigenen Mitschnitten; kein fremder Code übernommen.
+Apache-2.0. Feldpositionen des Protokolls nach öffentlich dokumentierten Community-Beobachtungen und eigenen Mitschnitten; kein fremder Code übernommen.
