@@ -33,7 +33,7 @@ VIRTUAL_ENV=../mcz-venv uv pip install -r requirements_test.txt
 ../mcz-venv/bin/ruff check . && ../mcz-venv/bin/ruff format --check .
 ../mcz-venv/bin/pytest -q
 ```
-Die Version von `pytest-homeassistant-custom-component` in `requirements_test.txt` bestimmt die getestete HA-Version (0.13.375 = HA 2026.10.4).
+HA-Version beim Nutzer: 2026.11 (Stand 16.11.2026). Die Version von `pytest-homeassistant-custom-component` in `requirements_test.txt` bestimmt die getestete HA-Version (0.13.375 = HA 2026.10.4).
 
 ## Arbeitsweise
 Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → GitHub-Prüfungen abwarten → nur bei Grün per Fast-Forward nach `main`. Commit-Texte auf Deutsch. Release: `release.yml` per `workflow_dispatch` auf `main` (liest Version aus `manifest.json`, Text aus `CHANGELOG.md`).
