@@ -21,6 +21,7 @@ Home-Assistant-Integration, die einen MCZ-Pelletofen mit Maestro-WLAN-Modul **oh
 | `custom_components/mcz_local/protocol.py` | reines Protokoll ohne HA: Statuszeile entschlüsseln, Befehle bauen, Socket.IO-Hilfen |
 | `custom_components/mcz_local/__init__.py` | Einrichten/Entladen, `runtime_data` (`McZData`) |
 | `custom_components/mcz_local/config_flow.py` | Einrichtung über die Oberfläche (Port), nur ein Eintrag |
+| `custom_components/mcz_local/brand/` | Logo `icon.png` (256 px), `icon@2x.png` (512 px) |
 | `custom_components/mcz_local/strings.json`, `translations/` | Texte (Schlüssel nur `[a-z0-9-_]`) |
 | `tests/` | pytest mit `pytest-homeassistant-custom-component` |
 | `docs/KONZEPT.md` | Ziel, Architektur, Datenmodell, Phasen |
