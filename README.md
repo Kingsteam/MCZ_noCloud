@@ -2,7 +2,9 @@
 
 Home-Assistant-Integration für MCZ-Pelletöfen mit Maestro-WLAN-Modul, **ohne MCZ-Cloud**.
 
-> ⚠️ **Frühe Entwicklung.** Noch nicht mit echter Hardware getestet. Noch keine Entitäten.
+> ⚠️ **Frühe Entwicklung, nur lesen.** Sensoren ja, Schalten noch nicht. Noch **nicht mit echter Hardware getestet**.
+
+Bedienung: [docs/HANDBUCH.md](docs/HANDBUCH.md)
 
 ## Wie es funktioniert
 Das Maestro-Modul baut von sich aus eine unverschlüsselte Verbindung zum MCZ-Server auf. Dein Router leitet diese Verbindung (nur für den Ofen) auf Home Assistant um, und diese Integration übernimmt die Rolle des Servers. Die MCZ-App funktioniert dann nicht mehr.

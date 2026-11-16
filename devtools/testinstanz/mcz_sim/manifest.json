@@ -1,0 +1,10 @@
+{
+  "domain": "mcz_sim",
+  "name": "MCZ-Ofen-Simulator (nur Test-Instanz)",
+  "codeowners": [],
+  "dependencies": [],
+  "documentation": "https://github.com/kingsteam/MCZ_noCloud",
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "0.1.0"
+}

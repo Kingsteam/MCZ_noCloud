@@ -1,0 +1,36 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "burning": {
+        "default": "mdi:fire-off",
+        "state": {
+          "on": "mdi:fire"
+        }
+      }
+    },
+    "sensor": {
+      "fume_fan_rpm": {
+        "default": "mdi:fan"
+      },
+      "ignitions": {
+        "default": "mdi:counter"
+      },
+      "power_level": {
+        "default": "mdi:speedometer"
+      },
+      "pump_pwm": {
+        "default": "mdi:pump"
+      },
+      "state": {
+        "default": "mdi:fireplace",
+        "state": {
+          "error": "mdi:alert",
+          "off": "mdi:fireplace-off"
+        }
+      },
+      "state_code": {
+        "default": "mdi:numeric"
+      }
+    }
+  }
+}

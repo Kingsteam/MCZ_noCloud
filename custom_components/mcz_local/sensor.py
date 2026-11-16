@@ -61,6 +61,7 @@ SENSORS: tuple[McZSensorDescription, ...] = (
         key="state_code",
         translation_key="state_code",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         value=lambda i: i.get("state"),
     ),
     _temp("boiler_temperature"),

@@ -21,11 +21,17 @@ Home-Assistant-Integration, die einen MCZ-Pelletofen mit Maestro-WLAN-Modul **oh
 | `custom_components/mcz_local/protocol.py` | reines Protokoll ohne HA: Statuszeile entschlüsseln, Befehle bauen, Socket.IO-Hilfen |
 | `custom_components/mcz_local/server.py` | Server für den Ofen (asyncio, ohne HA): Engine.IO-3-Handshake, WebSocket, Socket.IO, Statusabfrage alle 10 s, `StoveStatus`, Beobachter (`add_listener`) |
 | `custom_components/mcz_local/__init__.py` | Einrichten: Server starten (Port belegt → `ConfigEntryNotReady`), Entladen/HA-Stopp: Server stoppen; `runtime_data` (`McZData`) |
+| `custom_components/mcz_local/entity.py` | Basis-Entität: hört auf den Server, verfügbar nur bei Verbindung; Gerät mit Kennung = Config-Eintrag |
+| `custom_components/mcz_local/sensor.py` | Sensoren; optionale Fühler (Rücklauf, Puffer) erst anlegen, wenn ein Wert kommt |
+| `custom_components/mcz_local/binary_sensor.py` | Verbunden (immer verfügbar), In Betrieb, Störung |
+| `custom_components/mcz_local/icons.json` | Symbole der Entitäten |
 | `custom_components/mcz_local/config_flow.py` | Einrichtung über die Oberfläche (Port), nur ein Eintrag |
 | `custom_components/mcz_local/brand/` | Logo `icon.png` (256 px), `icon@2x.png` (512 px) |
 | `custom_components/mcz_local/strings.json`, `translations/` | Texte (Schlüssel nur `[a-z0-9-_]`) |
 | `tests/` | pytest mit `pytest-homeassistant-custom-component` |
 | `tests/fake_stove.py` | simulierter Ofen (Client) mit erfundener Kennung, beantwortet `ProvaStufa` |
+| `docs/HANDBUCH.md`, `docs/bilder/` | Bedienung für Nutzer, Bilder nur aus der Test-Instanz |
+| `devtools/testinstanz/` | simulierte HA-Instanz: `start.py`, Simulator `mcz_sim`, `bildschirmfotos.py`, `README.md` |
 | `docs/KONZEPT.md` | Ziel, Architektur, Datenmodell, Phasen |
 | `.github/workflows/` | `tests.yml`, `validate.yml` (hassfest + HACS), `release.yml` |
 
@@ -42,6 +48,9 @@ HA-Version beim Nutzer: 2026.11 (Stand 16.11.2026). Die Version von `pytest-home
 Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → GitHub-Prüfungen abwarten → nur bei Grün per Fast-Forward nach `main`. Commit-Texte auf Deutsch. Release: `release.yml` per `workflow_dispatch` auf `main` (liest Version aus `manifest.json`, Text aus `CHANGELOG.md`).
 
 ## Stolperfallen
+- `device_registry.async_get_device` ist veraltet (Fehler in Tests): `dr.async_entries_for_config_entry` verwenden.
+- Test-Instanz: HA aus dem Konfigurationsordner starten (sonst fehlt `mcz_sim`); HTTP-Port-Änderung muss seit HA 2026.11 per WebSocket `http/config/promote` bestätigt werden. Details in `devtools/testinstanz/README.md`.
+- Entitätsnamen in `strings.json` (Englisch) und `translations/de.json`; Auswahl-Optionen des Zustands = `protocol.STATES` + `error`, `unknown` (Test prüft das).
 - Tests mit echten Sockets brauchen `pytestmark = pytest.mark.usefixtures("socket_enabled")`; erlaubt ist nur 127.0.0.1. Im Config-Flow-Test `async_setup_entry` patchen, sonst öffnet der Test Port 9000.
 - Nach dem Trennen bleibt der Port kurz in TIME_WAIT: zum erneuten Binden `SO_REUSEADDR` (asyncio macht das selbst).
 - Ruff meckert über typografische Zeichen (– × −) in Kommentaren und Strings (RUF001–003): normale Zeichen verwenden.
@@ -52,4 +61,5 @@ Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → 
 
 ## Stand
 - Phase 1 (Grundgerüst, Protokoll, Tests) fertig.
-- Phase 2 (Server in der Integration, simulierter Ofen) fertig. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**
+- Phase 2 (Server in der Integration, simulierter Ofen) fertig.
+- Phase 3 (Sensoren, Binärsensoren, Test-Instanz, Handbuch) fertig, Version 0.3.0. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**
