@@ -12,6 +12,8 @@ DOMAIN: Final = "mcz_local"
 
 CONF_PORT: Final = "port"
 DEFAULT_PORT: Final = 9000
+# Auf allen Adressen lauschen; der Router leitet nur den Ofen hierher um
+LISTEN_HOST: Final = "0.0.0.0"
 
 # Abfrage-Takt für den Status („RecuperoInfo“), Sekunden
 POLL_INTERVAL_S: Final = 10

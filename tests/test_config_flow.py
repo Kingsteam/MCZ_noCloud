@@ -1,5 +1,7 @@
 """Tests für die Einrichtung über die Oberfläche."""
 
+from unittest.mock import patch
+
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -14,9 +16,14 @@ async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
     assert result["type"] is FlowResultType.FORM
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_PORT: 9100}
-    )
+    with patch(
+        "custom_components.mcz_local.async_setup_entry", return_value=True
+    ) as setup:
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_PORT: 9100}
+        )
+        await hass.async_block_till_done()
+    assert len(setup.mock_calls) == 1
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {CONF_PORT: 9100}
 
@@ -29,14 +36,3 @@ async def test_only_one_entry(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "single_instance_allowed"
-
-
-async def test_setup_and_unload(hass: HomeAssistant) -> None:
-    """Eintrag lässt sich laden und entladen."""
-    entry = MockConfigEntry(domain=DOMAIN, data={CONF_PORT: 9000})
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.state is config_entries.ConfigEntryState.LOADED
-    assert entry.runtime_data.port == 9000
-    assert await hass.config_entries.async_unload(entry.entry_id)
-    assert entry.state is config_entries.ConfigEntryState.NOT_LOADED

@@ -19,11 +19,13 @@ Home-Assistant-Integration, die einen MCZ-Pelletofen mit Maestro-WLAN-Modul **oh
 | `custom_components/mcz_local/manifest.json` | `domain`, `name`, dann Schlüssel alphabetisch. Version gemeinsam mit `pyproject.toml` anheben |
 | `custom_components/mcz_local/const.py` | Konstanten, **Sicherheitsgrenzen** |
 | `custom_components/mcz_local/protocol.py` | reines Protokoll ohne HA: Statuszeile entschlüsseln, Befehle bauen, Socket.IO-Hilfen |
-| `custom_components/mcz_local/__init__.py` | Einrichten/Entladen, `runtime_data` (`McZData`) |
+| `custom_components/mcz_local/server.py` | Server für den Ofen (asyncio, ohne HA): Engine.IO-3-Handshake, WebSocket, Socket.IO, Statusabfrage alle 10 s, `StoveStatus`, Beobachter (`add_listener`) |
+| `custom_components/mcz_local/__init__.py` | Einrichten: Server starten (Port belegt → `ConfigEntryNotReady`), Entladen/HA-Stopp: Server stoppen; `runtime_data` (`McZData`) |
 | `custom_components/mcz_local/config_flow.py` | Einrichtung über die Oberfläche (Port), nur ein Eintrag |
 | `custom_components/mcz_local/brand/` | Logo `icon.png` (256 px), `icon@2x.png` (512 px) |
 | `custom_components/mcz_local/strings.json`, `translations/` | Texte (Schlüssel nur `[a-z0-9-_]`) |
 | `tests/` | pytest mit `pytest-homeassistant-custom-component` |
+| `tests/fake_stove.py` | simulierter Ofen (Client) mit erfundener Kennung, beantwortet `ProvaStufa` |
 | `docs/KONZEPT.md` | Ziel, Architektur, Datenmodell, Phasen |
 | `.github/workflows/` | `tests.yml`, `validate.yml` (hassfest + HACS), `release.yml` |
 
@@ -40,6 +42,8 @@ HA-Version beim Nutzer: 2026.11 (Stand 16.11.2026). Die Version von `pytest-home
 Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → GitHub-Prüfungen abwarten → nur bei Grün per Fast-Forward nach `main`. Commit-Texte auf Deutsch. Release: `release.yml` per `workflow_dispatch` auf `main` (liest Version aus `manifest.json`, Text aus `CHANGELOG.md`).
 
 ## Stolperfallen
+- Tests mit echten Sockets brauchen `pytestmark = pytest.mark.usefixtures("socket_enabled")`; erlaubt ist nur 127.0.0.1. Im Config-Flow-Test `async_setup_entry` patchen, sonst öffnet der Test Port 9000.
+- Nach dem Trennen bleibt der Port kurz in TIME_WAIT: zum erneuten Binden `SO_REUSEADDR` (asyncio macht das selbst).
 - Ruff meckert über typografische Zeichen (– × −) in Kommentaren und Strings (RUF001–003): normale Zeichen verwenden.
 - Coroutinen, die auf die Uhr warten, mit `hass.async_create_background_task` starten, sonst blockieren sie `async_block_till_done`.
 - In Tests mit eingefrorener Zeit kein `asyncio.sleep`.
@@ -47,4 +51,5 @@ Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → 
 - HA-Port 9000 ist oft schon belegt (z. B. Portainer). Port ist deshalb einstellbar, der Router kann den Port umschreiben.
 
 ## Stand
-- Phase 1 (Grundgerüst, Protokoll, Tests) fertig, noch **nicht mit echter Hardware getestet**.
+- Phase 1 (Grundgerüst, Protokoll, Tests) fertig.
+- Phase 2 (Server in der Integration, simulierter Ofen) fertig. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**

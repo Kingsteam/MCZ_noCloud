@@ -15,5 +15,10 @@
         "title": "MCZ Maestro (lokal)"
       }
     }
+  },
+  "exceptions": {
+    "port_in_use": {
+      "message": "Port {port} lässt sich nicht öffnen ({error}). Benutzt ein anderes Programm diesen Port?"
+    }
   }
 }

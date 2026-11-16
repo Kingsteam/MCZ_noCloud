@@ -1,6 +1,6 @@
 [project]
 name = "mcz-local"
-version = "0.1.0"
+version = "0.2.0"
 description = "Home-Assistant-Integration für MCZ-Pelletöfen (Maestro) ohne Cloud"
 requires-python = ">=3.14"
 license = "Apache-2.0"
@@ -15,6 +15,10 @@ target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "RUF", "SIM", "ASYNC"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests warten mit echter Zeit auf Zustände des simulierten Ofens
+"tests/*" = ["ASYNC109", "ASYNC110"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components"]
