@@ -53,7 +53,7 @@ NUMBERS: tuple[McZNumberDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         native_min_value=BOILER_SETPOINT_MIN_C,
         native_max_value=BOILER_SETPOINT_MAX_C,
-        native_step=0.5,
+        native_step=1,  # der Ofen nimmt beim Kessel nur ganze Grad an
         mode=NumberMode.BOX,
         tech=False,
     ),

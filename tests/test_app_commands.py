@@ -89,12 +89,12 @@ async def test_boiler_setpoint(hass: HomeAssistant, cleanup) -> None:  # noqa: F
     cleanup.append(stove)
     number = eid(hass, "number", "boiler_setpoint", entry)
     assert float(hass.states.get(number).state) == 60.0
-    await call(hass, "number", "set_value", number, value=61.5)
-    await until(hass, lambda: (51, 123) in stove.writes)
-    await until(hass, lambda: float(hass.states.get(number).state) == 61.5)
+    await call(hass, "number", "set_value", number, value=61)
+    await until(hass, lambda: (51, 122) in stove.writes)
+    await until(hass, lambda: float(hass.states.get(number).state) == 61.0)
     with pytest.raises(ServiceValidationError):
         await call(hass, "number", "set_value", number, value=85)
-    assert all(pid != 51 or val == 123 for pid, val in stove.writes)
+    assert all(pid != 51 or val == 122 for pid, val in stove.writes)
 
 
 async def test_season(hass: HomeAssistant, cleanup) -> None:  # noqa: F811
@@ -245,3 +245,20 @@ async def test_connection_check(hass: HomeAssistant, cleanup) -> None:  # noqa: 
     await stove.close()
     await until(hass, lambda: hass.states.get(check).state == "disconnected")
     assert hass.states.get(check).attributes["disconnected_since"] is not None
+
+
+async def test_error_shows_climate_off(hass: HomeAssistant, cleanup) -> None:  # noqa: F811
+    """Störung (z. B. Pellets leer): Thermostat zeigt „aus“, nicht „heizen“."""
+    entry, stove = await start(hass, {1: 50})
+    cleanup.append(stove)
+    climate = eid(hass, "climate", "climate", entry)
+    assert hass.states.get(climate).state == "off"
+    assert hass.states.get(climate).attributes["hvac_action"] == "off"
+
+
+async def test_boiler_setpoint_whole_degrees(hass: HomeAssistant, cleanup) -> None:  # noqa: F811
+    """Der Ofen nimmt beim Kessel nur ganze Grad an (am echten Ofen beobachtet)."""
+    entry, stove = await start(hass, {27: 120})
+    cleanup.append(stove)
+    number = eid(hass, "number", "boiler_setpoint", entry)
+    assert hass.states.get(number).attributes["step"] == 1

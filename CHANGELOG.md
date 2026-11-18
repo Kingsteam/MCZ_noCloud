@@ -4,6 +4,11 @@ Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-11-19
+### Behoben
+- Bei einer Störung (z. B. Pelletbehälter leer) zeigte das Thermostat weiter „Heizen“. Das hat eine Steuerung (Wärmeregie) glauben lassen, der Ofen laufe. Jetzt zeigt es „Aus“.
+- Kessel-Solltemperatur nur noch in ganzen Grad: Der Ofen ignoriert halbe Grad (am echten Ofen beobachtet).
+
 ## [0.5.2] - 2026-11-18
 ### Hinzugefügt
 - Diagnose-Sensor „Verbindungsprüfung“: wartet / verbunden / getrennt, mit Port, Herkunft der Verbindung, letzter Nachricht und letztem Verbindungsversuch. Bleibt auch ohne Ofen verfügbar.

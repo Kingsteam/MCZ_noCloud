@@ -23,7 +23,9 @@ from .control import StoveController
 from .entity import McZEntity
 
 # Zustände, in denen der Ofen als „aus“ gilt (sonst eingeschaltet)
-OFF_STATES = frozenset({"off", "switching_off", "cooling"})
+# Störung zählt als „aus“: der Ofen heizt nicht, und eine Steuerung soll das
+# nicht als „läuft“ deuten (Schleife in der Wärmeregie, 19.11.2026)
+OFF_STATES = frozenset({"off", "switching_off", "cooling", "error"})
 IDLE_STATES = frozenset({"standby", "auto_eco"})
 
 DESCRIPTION = ClimateEntityDescription(
