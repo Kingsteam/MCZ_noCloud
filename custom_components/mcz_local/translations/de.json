@@ -87,6 +87,34 @@
           "t3": "T3"
         }
       },
+      "connection_check": {
+        "name": "Verbindungsprüfung",
+        "state": {
+          "connected": "Verbunden",
+          "disconnected": "Getrennt",
+          "waiting": "Wartet auf den Ofen"
+        },
+        "state_attributes": {
+          "connected_since": {
+            "name": "Verbunden seit"
+          },
+          "disconnected_since": {
+            "name": "Getrennt seit"
+          },
+          "last_attempt": {
+            "name": "Letzter Verbindungsversuch"
+          },
+          "last_message": {
+            "name": "Letzte Nachricht"
+          },
+          "port": {
+            "name": "Port"
+          },
+          "remote_address": {
+            "name": "Verbindung von"
+          }
+        }
+      },
       "fume_fan_rpm": {
         "name": "Abgasgebläse"
       },

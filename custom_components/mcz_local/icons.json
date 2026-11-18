@@ -36,6 +36,13 @@
       },
       "chrono_program": {
         "default": "mdi:calendar-clock"
+      },
+      "connection_check": {
+        "default": "mdi:lan-pending",
+        "state": {
+          "connected": "mdi:lan-connect",
+          "disconnected": "mdi:lan-disconnect"
+        }
       }
     },
     "switch": {

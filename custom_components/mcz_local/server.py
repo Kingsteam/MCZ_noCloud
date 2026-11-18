@@ -58,6 +58,11 @@ class StoveStatus:
     extra: dict[str, Any] = field(default_factory=dict)  # Zusatzparameter (03)
     chrono: dict[str, Any] = field(default_factory=dict)  # Zeitprogramm (04)
     clock_set: str | None = None  # zuletzt bestätigte Uhrzeit (AA|TTMMJJJJhhmm)
+    # Für die Verbindungsprüfung (time.time())
+    last_attempt: float | None = None  # irgendeine TCP-Verbindung kam an
+    remote_address: str | None = None  # von wo die Ofen-Verbindung kommt
+    connected_since: float | None = None
+    disconnected_since: float | None = None
 
 
 # --- HTTP / WebSocket-Hilfen -------------------------------------------------
@@ -148,6 +153,7 @@ class StoveConnection:
         self._socket_id = "local-" + secrets.token_hex(4)
         self._poll_task: asyncio.Task | None = None
         self.joined = False
+        self.peer: str | None = None
 
     async def send_text(self, text: str) -> None:
         self._writer.write(ws_frame(text))
@@ -321,6 +327,8 @@ class McZServer:
             for k in ("serialNumber", "macAddress", "type", "revision")
         }
         self.status.connected = True
+        self.status.connected_since = time.time()
+        self.status.remote_address = conn.peer
         _LOGGER.info("Ofen angemeldet (Firmware %s)", identity.get("revision"))
         self._notify()
         for cb in list(self._join_listeners):
@@ -353,8 +361,12 @@ class McZServer:
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
         conn: StoveConnection | None = None
+        peer = writer.get_extra_info("peername")
+        self.status.last_attempt = time.time()
         try:
             conn = await self._handshake(reader, writer)
+            if conn is not None:
+                conn.peer = peer[0] if peer else None
             if conn is not None:
                 await conn.run()
         except HandshakeError as err:
@@ -366,6 +378,7 @@ class McZServer:
             if conn is not None and conn is self._conn:
                 self._conn = None
                 self.status.connected = False
+                self.status.disconnected_since = time.time()
                 _LOGGER.info("Verbindung zum Ofen getrennt")
                 self._notify()
 

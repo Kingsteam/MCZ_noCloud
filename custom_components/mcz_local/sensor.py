@@ -156,7 +156,11 @@ async def async_setup_entry(
     entry.async_on_unload(server.add_listener(_add_optional))
     _add_optional()
     async_add_entities(
-        [McZRoomProbe(server, entry.entry_id), McZChrono(server, entry.entry_id)]
+        [
+            McZRoomProbe(server, entry.entry_id),
+            McZChrono(server, entry.entry_id),
+            McZConnectionCheck(server, entry.entry_id),
+        ]
     )
 
 
@@ -239,3 +243,51 @@ class McZChrono(McZEntity, SensorEntity):
         for name, num in DAYS.items():
             attrs[name] = slots_to_program(chrono["days"][num])
         return attrs
+
+
+def _ts(value: float | None) -> str | None:
+    return None if value is None else dt_util.utc_from_timestamp(value).isoformat()
+
+
+class McZConnectionCheck(McZEntity, SensorEntity):
+    """Verbindungsprüfung: wartet / verbunden / getrennt, mit Details.
+
+    Der Ofen ruft an, Home Assistant wartet. Ein „wartet“ heißt deshalb fast
+    immer: Die Umleitung im Router fehlt (siehe docs/NETZWERK.md).
+    """
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, server, entry_id: str) -> None:
+        super().__init__(
+            server,
+            entry_id,
+            SensorEntityDescription(
+                key="connection_check", translation_key="connection_check"
+            ),
+        )
+        self._attr_options = ["waiting", "connected", "disconnected"]
+
+    @property
+    def available(self) -> bool:
+        return True  # gerade dann wichtig, wenn der Ofen fehlt
+
+    @property
+    def native_value(self) -> str:
+        st = self._server.status
+        if st.connected:
+            return "connected"
+        return "disconnected" if st.connected_since else "waiting"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        st = self._server.status
+        return {
+            "port": self._server.port,
+            "remote_address": st.remote_address,
+            "connected_since": _ts(st.connected_since),
+            "disconnected_since": _ts(st.disconnected_since),
+            "last_message": _ts(st.last_seen),
+            "last_attempt": _ts(st.last_attempt),
+        }

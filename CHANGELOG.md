@@ -4,6 +4,10 @@ Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-18
+### Hinzugefügt
+- Diagnose-Sensor „Verbindungsprüfung“: wartet / verbunden / getrennt, mit Port, Herkunft der Verbindung, letzter Nachricht und letztem Verbindungsversuch. Bleibt auch ohne Ofen verfügbar.
+
 ## [0.5.1] - 2026-11-18
 ### Hinzugefügt
 - `docs/NETZWERK.md`: allgemeine Anleitung zur Umleitung im Router (DNAT, bei gleichem Netz Masquerade), mit Beispielen für UniFi, OPNsense/pfSense, OpenWrt, MikroTik.

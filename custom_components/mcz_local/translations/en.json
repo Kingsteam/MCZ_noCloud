@@ -87,6 +87,34 @@
           "t3": "T3"
         }
       },
+      "connection_check": {
+        "name": "Connection check",
+        "state": {
+          "connected": "Connected",
+          "disconnected": "Disconnected",
+          "waiting": "Waiting for the stove"
+        },
+        "state_attributes": {
+          "connected_since": {
+            "name": "Connected since"
+          },
+          "disconnected_since": {
+            "name": "Disconnected since"
+          },
+          "last_attempt": {
+            "name": "Last connection attempt"
+          },
+          "last_message": {
+            "name": "Last message"
+          },
+          "port": {
+            "name": "Port"
+          },
+          "remote_address": {
+            "name": "Connection from"
+          }
+        }
+      },
       "fume_fan_rpm": {
         "name": "Flue gas fan"
       },

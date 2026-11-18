@@ -57,6 +57,16 @@ Die Bezeichnungen sind je nach Firmware leicht anders.
 4. In Home Assistant steht *Verbunden* jetzt auf *Verbunden*. Meldet sich der Ofen 10 Minuten nach dem Einrichten noch immer nicht, zeigt Home Assistant unter *Einstellungen → Reparaturen* einen Hinweis.
 
 ## Prüfen
+Die Integration hat dafür den Diagnose-Sensor **Verbindungsprüfung**:
+
+| Zustand | Bedeutung |
+|---|---|
+| *Wartet auf den Ofen* | Home Assistant lauscht, aber es kommt nichts an: Umleitung fehlt oder greift noch nicht (Ofen kurz stromlos machen) |
+| *Verbunden* | alles gut. Das Attribut *Verbindung von* zeigt die Absenderadresse: mit Masquerade die Router-Adresse, sonst die des Ofens |
+| *Getrennt* | war verbunden, ist es nicht mehr; *Getrennt seit* sagt, wann |
+
+Kommt zwar ein *Letzter Verbindungsversuch*, aber kein *Verbunden*, erreicht etwas den Port, spricht aber nicht das Ofen-Protokoll (z. B. ein Port-Scanner oder ein falsch umgeleitetes Gerät).
+
 - **Verbunden bleibt auf *Getrennt*:** Stimmt die IP des Ofens? Ist der Zähler der Regel im Router gestiegen? Bei demselben Netz: Gibt es die Masquerade-Regel?
 - **Mitschnitt am Router** (falls möglich): Es müssen Pakete vom Ofen zu HA auf Port 9000 zu sehen sein.
 - Im Log von Home Assistant erscheint „Ofen angemeldet“, sobald es klappt.

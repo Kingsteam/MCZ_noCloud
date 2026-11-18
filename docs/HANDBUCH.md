@@ -35,6 +35,7 @@ Das Gerät **Pelletofen** mit Seriennummer und Firmware des Moduls (werden bei d
 | In Betrieb | *Ein*, solange der Ofen zündet oder brennt |
 | Störung | *Problem*, wenn der Ofen einen Alarm (A01 …) meldet |
 | Verbunden | ob der Ofen gerade mit Home Assistant verbunden ist |
+| Verbindungsprüfung (Diagnose) | *Wartet auf den Ofen*, *Verbunden* oder *Getrennt*, mit Port, Herkunft der Verbindung und Zeitpunkten. Hilft beim Einrichten der Umleitung, siehe [NETZWERK.md](NETZWERK.md) |
 | Diagnose (Zustandsnummer, Leistungsstufe, Pumpe, Abgasgebläse, Platinentemperatur) | Rohwerte für die Fehlersuche |
 
 Ist der Ofen **nicht verbunden**, zeigen alle Werte „Nicht verfügbar“, nur *Verbunden* steht auf *Getrennt*.

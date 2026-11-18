@@ -222,3 +222,26 @@ async def test_not_connected_issue(hass: HomeAssistant, cleanup) -> None:  # noq
     await stove.connect()
     await until(hass, lambda: entry.runtime_data.server.status.connected)
     assert registry.async_get_issue(DOMAIN, "stove_not_connected") is None
+
+
+async def test_connection_check(hass: HomeAssistant, cleanup) -> None:  # noqa: F811
+    """Verbindungsprüfung: wartet, verbunden (mit Herkunft), getrennt."""
+    from .fake_stove import FakeStove
+
+    entry, _ = await start(hass, stove=False)
+    check = eid(hass, "sensor", "connection_check", entry)
+    state = hass.states.get(check)
+    assert state.state == "waiting"
+    assert state.attributes["port"] == entry.runtime_data.server.port
+
+    stove = FakeStove(entry.runtime_data.server.port)
+    await stove.connect()
+    await until(hass, lambda: hass.states.get(check).state == "connected")
+    attrs = hass.states.get(check).attributes
+    assert attrs["remote_address"] == "127.0.0.1"
+    assert attrs["connected_since"] is not None
+    assert attrs["last_attempt"] is not None
+
+    await stove.close()
+    await until(hass, lambda: hass.states.get(check).state == "disconnected")
+    assert hass.states.get(check).attributes["disconnected_since"] is not None
