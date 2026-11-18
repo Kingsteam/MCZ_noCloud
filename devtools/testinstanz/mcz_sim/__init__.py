@@ -65,6 +65,15 @@ class SimStove:
         self.port = port
         self.fields: dict[int, int] = dict(SAMPLE)
         self.online = True
+        self.season = 0
+        self.clock = "01011970" + "0000"
+        # Zusatzparameter (erfunden): Fühler im Ofen, Verzögerung 2 min, Relais N.C.
+        self.extra: dict[int, int] = {3: 0x01, 4: 120, 5: 1, 22: 0xFF}
+        self.tech: dict[int, int] = {}
+        # Zeitprogramm (erfunden): 0-6 T1, 6-9 T3, 9-16 T2, 16-22 T3, 22-24 T1
+        day = [1] * 12 + [3] * 6 + [2] * 14 + [3] * 12 + [1] * 4
+        self.chrono = [list(day) for _ in range(7)]
+        self.chrono_temps = [19, 21, 22]
         self._writer: asyncio.StreamWriter | None = None
         self._sequence: asyncio.Task | None = None
 
@@ -92,6 +101,10 @@ class SimStove:
             self.run_sequence(IGNITION if val == 1 else SHUTDOWN)
         elif pid == 42:
             self.fields[26] = val
+        elif pid == 51:
+            self.fields[27] = val
+        elif pid == 58:
+            self.season = val
         elif pid in (41, 50, 1111):
             self.fields[{41: 23, 50: 49, 1111: 25}[pid]] = val
 
@@ -124,6 +137,53 @@ class SimStove:
             self.fields[6] = max(
                 30, min(48, self.fields[6] + random.choice((-1, 0, 0, 1)))
             )
+
+    def extra_line(self) -> str:
+        parts = ["03"] + ["00"] * 23
+        for pos, val in self.extra.items():
+            parts[pos] = format(val, "04x" if pos == 4 else "02x")
+        return "|".join(parts)
+
+    def chrono_line(self) -> str:
+        days = []
+        for slots in self.chrono:
+            value = 0
+            for level in slots:
+                value = (value << 2) | level
+            days.append(f"{value:024X}")
+        return "|".join(["04", *days, *(format(t, "02x") for t in self.chrono_temps)])
+
+    def answer(self, req: str) -> str | None:
+        """Antwort wie der echte Ofen (siehe docs/PROTOKOLL.md)."""
+        parts = req.split("|")
+        if req.startswith("C|C|WriteParametri|"):
+            pid, val = int(parts[3]), int(parts[4])
+            _LOGGER.info("Simulator: Befehl %s = %s", pid, val)
+            self.apply_write(pid, val)
+            return self.info_line()
+        if req.startswith("C|C|WriteTecniciParametri|"):
+            pid, raw = int(parts[3]), int(parts[5], 16)
+            _LOGGER.info("Simulator: technischer Parameter %s = %s", pid, raw)
+            self.tech[pid] = raw
+            if pid in (148, 294):
+                self.extra[{148: 4, 294: 5}[pid]] = raw
+            return None  # der echte Ofen antwortet darauf nicht
+        if req.startswith("C|C|ScriviGiornoChrono|"):
+            value = int(parts[4], 16)
+            self.chrono[int(parts[3])] = [
+                (value >> (2 * (47 - i))) & 3 for i in range(48)
+            ]
+            _LOGGER.info("Simulator: Zeitprogramm Tag %s", parts[3])
+            return self.info_line()
+        if req.startswith("C|C|SalvaDataOra|"):
+            self.clock = parts[3]
+            _LOGGER.info("Simulator: Uhr gestellt auf %s", parts[3])
+            return "AA|" + parts[3]
+        return {
+            "C|C|RecuperoInfo": self.info_line,
+            "C|C|RecuperoParametriExtra": self.extra_line,
+            "C|C|RecuperoGiornoChrono": self.chrono_line,
+        }.get(req, lambda: None)()
 
     def info_line(self) -> str:
         parts = ["01"] + ["00"] * 60
@@ -194,16 +254,10 @@ class SimStove:
                     return
                 if text.startswith('42["ProvaStufa"'):
                     payload = json.loads(text[2:])[1]
-                    req = payload["richiesta"]
-                    if req.startswith("C|C|WriteParametri|"):
-                        pid, val = (int(x) for x in req.split("|")[3:5])
-                        _LOGGER.info("Simulator: Befehl %s = %s", pid, val)
-                        self.apply_write(pid, val)
-                    if req == "C|C|RecuperoInfo" or req.startswith(
-                        "C|C|WriteParametri|"
-                    ):
+                    line = self.answer(payload["richiesta"])
+                    if line is not None:
                         answer = {
-                            "stringaRicevuta": self.info_line(),
+                            "stringaRicevuta": line,
                             "socketChiamata": payload.get("socketChiamata"),
                         }
                         writer.write(_frame("42" + json.dumps(["rispondo", answer])))

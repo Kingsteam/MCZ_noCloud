@@ -8,23 +8,50 @@ Entitäten bereit.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import timedelta
+import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import Event, HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
+from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.typing import ConfigType
+from homeassistant.util import dt as dt_util
 
-from .const import CONF_PORT, DEFAULT_PORT, DOMAIN, LISTEN_HOST, POLL_INTERVAL_S
+from .const import (
+    CLOCK_SYNC_INTERVAL_S,
+    CONF_PORT,
+    CONF_SYNC_CLOCK,
+    DEFAULT_PORT,
+    DEFAULT_SYNC_CLOCK,
+    DOMAIN,
+    LISTEN_HOST,
+    POLL_INTERVAL_S,
+)
 from .control import StoveController
 from .server import McZServer
+from .services import async_setup_services
+
+_LOGGER = logging.getLogger(__name__)
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.CLIMATE,
+    Platform.NUMBER,
+    Platform.SELECT,
     Platform.SENSOR,
     Platform.SWITCH,
 ]
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Dienste einmalig registrieren."""
+    async_setup_services(hass)
+    return True
 
 
 @dataclass
@@ -82,6 +109,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: McZConfigEntry) -> bool:
             )
 
     entry.async_on_unload(server.add_listener(_update_device))
+
+    # Uhr des Ofens stellen: bei jeder Anmeldung und danach regelmäßig. Sonst
+    # läuft das Zeitprogramm nach einer Zeitumstellung zur falschen Zeit.
+    if entry.options.get(CONF_SYNC_CLOCK, DEFAULT_SYNC_CLOCK):
+
+        async def _sync_clock(*_args: object) -> None:
+            if not server.status.connected:
+                return
+            try:
+                await controller.async_sync_clock(dt_util.now())
+            except HomeAssistantError as err:
+                _LOGGER.debug("Uhr nicht gestellt: %s", err)
+
+        @callback
+        def _on_join() -> None:
+            entry.async_create_background_task(
+                hass, _sync_clock(), "mcz_local_sync_clock"
+            )
+
+        entry.async_on_unload(server.add_join_listener(_on_join))
+        if server.status.connected:  # Ofen hat sich schon während des Setups gemeldet
+            _on_join()
+        entry.async_on_unload(
+            async_track_time_interval(
+                hass, _sync_clock, timedelta(seconds=CLOCK_SYNC_INTERVAL_S)
+            )
+        )
     return True
 
 

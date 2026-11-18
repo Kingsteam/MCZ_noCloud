@@ -39,7 +39,7 @@ async def test_join_and_status(server):
     assert server.status.info["ambient_temperature"] == 20.5
     assert server.status.info["boiler_temperature"] == 60.0
     assert server.status.info["puffer_temperature"] is None
-    assert stove.requests[0] == "C|C|RecuperoInfo"
+    assert "C|C|RecuperoInfo" in stove.requests
     assert events and events[0] is True
     await stove.close()
 
@@ -51,7 +51,10 @@ async def test_polling_repeats(server):
     await wait_for(lambda: len(stove.requests) >= 3)
     stove.fields[1] = 46
     await wait_for(lambda: server.status.info.get("state_key") == "standby")
-    assert all(r == "C|C|RecuperoInfo" for r in stove.requests)
+    assert all(r.startswith("C|C|Recupero") for r in stove.requests)
+    # Zusatzparameter und Zeitprogramm nur selten, Status bei jeder Runde
+    infos = stove.requests.count("C|C|RecuperoInfo")
+    assert stove.requests.count("C|C|RecuperoGiornoChrono") <= infos // 30 + 1
     await stove.close()
 
 

@@ -117,6 +117,13 @@ def main() -> None:
         page.wait_for_timeout(4000)
         page.screenshot(path=str(ZIEL / "optionen.png"))
         print("gespeichert:", ZIEL / "optionen.png")
+
+        # Geräteseite in voller Höhe: Konfiguration mit Kessel- und Eco-Werten
+        page.set_viewport_size({"width": 1280, "height": 2000})
+        page.goto(f"{BASE}/config/devices/device/{device_id}")
+        page.wait_for_timeout(8000)
+        page.screenshot(path=str(ZIEL / "einstellungen.png"))
+        print("gespeichert:", ZIEL / "einstellungen.png")
         browser.close()
 
 

@@ -15,6 +15,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.mcz_local.const import (
     CONF_PORT,
     CONF_ROOM_SENSOR,
+    CONF_SYNC_CLOCK,
     DOMAIN,
     MIN_OFF_BEFORE_ON_S,
 )
@@ -222,7 +223,8 @@ async def test_room_sensor_option(hass: HomeAssistant, cleanup) -> None:
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {CONF_ROOM_SENSOR: room.entity_id}
     )
-    assert entry.options == {CONF_ROOM_SENSOR: room.id}  # Register-ID, nicht entity_id
+    # Register-ID, nicht entity_id
+    assert entry.options == {CONF_ROOM_SENSOR: room.id, CONF_SYNC_CLOCK: True}
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
 

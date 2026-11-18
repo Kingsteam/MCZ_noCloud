@@ -1,0 +1,23 @@
+set_chrono_day:
+  fields:
+    days:
+      required: true
+      example: '["mon", "tue", "wed", "thu", "fri"]'
+      selector:
+        select:
+          multiple: true
+          translation_key: day
+          options:
+            - mon
+            - tue
+            - wed
+            - thu
+            - fri
+            - sat
+            - sun
+    program:
+      required: true
+      example: '[{"start": "00:00", "level": "t1"}, {"start": "06:00", "level": "t3"}, {"start": "22:00", "level": "t1"}]'
+      selector:
+        object:
+sync_clock:

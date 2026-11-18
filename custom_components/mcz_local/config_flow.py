@@ -14,7 +14,14 @@ from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er, selector
 import voluptuous as vol
 
-from .const import CONF_PORT, CONF_ROOM_SENSOR, DEFAULT_PORT, DOMAIN
+from .const import (
+    CONF_PORT,
+    CONF_ROOM_SENSOR,
+    CONF_SYNC_CLOCK,
+    DEFAULT_PORT,
+    DEFAULT_SYNC_CLOCK,
+    DOMAIN,
+)
 
 PORT_SELECTOR = selector.NumberSelector(
     selector.NumberSelectorConfig(
@@ -64,11 +71,17 @@ class McZOptionsFlow(OptionsFlowWithReload):
         registry = er.async_get(self.hass)
         errors: dict[str, str] = {}
         if user_input is not None:
+            data: dict[str, Any] = {
+                CONF_SYNC_CLOCK: bool(
+                    user_input.get(CONF_SYNC_CLOCK, DEFAULT_SYNC_CLOCK)
+                )
+            }
             entity_id = user_input.get(CONF_ROOM_SENSOR)
             if not entity_id:
-                return self.async_create_entry(data={})
+                return self.async_create_entry(data=data)
             if reg_entry := registry.async_get(entity_id):
-                return self.async_create_entry(data={CONF_ROOM_SENSOR: reg_entry.id})
+                data[CONF_ROOM_SENSOR] = reg_entry.id
+                return self.async_create_entry(data=data)
             errors[CONF_ROOM_SENSOR] = "sensor_not_registered"
 
         current = None
@@ -85,6 +98,12 @@ class McZOptionsFlow(OptionsFlowWithReload):
                         domain="sensor", device_class="temperature"
                     )
                 ),
+                vol.Optional(
+                    CONF_SYNC_CLOCK,
+                    default=self.config_entry.options.get(
+                        CONF_SYNC_CLOCK, DEFAULT_SYNC_CLOCK
+                    ),
+                ): selector.BooleanSelector(),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema, errors=errors)

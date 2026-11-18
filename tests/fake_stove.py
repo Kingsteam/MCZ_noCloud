@@ -46,6 +46,15 @@ class FakeStove:
         self.fields = dict(DEFAULT_FIELDS if fields is None else fields)
         self.requests: list[str] = []
         self.writes: list[tuple[int, int]] = []
+        self.tech_writes: list[tuple[int, int, str]] = []
+        self.clock: str | None = None
+        self.season: int | None = None
+        # Zusatzparameter (erfunden): Fühler im Ofen, 2 min, Hysterese 1, Relais N.C.
+        self.extra = {3: 0x01, 4: 120, 5: 1, 22: 0xFF}
+        # Zeitprogramm (erfunden): alle Tage 0-6 T1, 6-22 T3, 22-24 T1
+        day = [1] * 12 + [3] * 32 + [1] * 4
+        self.chrono = [list(day) for _ in range(7)]
+        self.chrono_temps = [19, 21, 23]
         self.got_connect = asyncio.Event()
         self.got_pong = asyncio.Event()
         self._reader: asyncio.StreamReader | None = None
@@ -120,15 +129,49 @@ class FakeStove:
         except asyncio.IncompleteReadError, ConnectionError:
             return
 
+    def extra_line(self) -> str:
+        parts = ["03"] + ["00"] * 23
+        for pos, val in self.extra.items():
+            parts[pos] = format(val, "04x" if pos == 4 else "02x")
+        return "|".join(parts)
+
+    def chrono_line(self) -> str:
+        days = [P.encode_chrono_day(d) for d in self.chrono]
+        temps = [format(t, "02x") for t in self.chrono_temps]
+        return "|".join(["04", *days, *temps])
+
     async def _answer(self, payload: dict) -> None:
         req = payload["richiesta"]
         self.requests.append(req)
+        parts = req.split("|")
+        answer: str | None = "00|00"
         if req.startswith("C|C|WriteParametri|"):
-            pid, val = (int(x) for x in req.split("|")[3:5])
+            pid, val = (int(x) for x in parts[3:5])
             self.writes.append((pid, val))
             self.apply_write(pid, val)
-        info = req == "C|C|RecuperoInfo" or req.startswith("C|C|WriteParametri|")
-        answer = make_info_line(self.fields) if info else "00|00"
+            answer = make_info_line(self.fields)
+        elif req.startswith("C|C|WriteTecniciParametri|"):
+            # wie der echte Ofen: keine Antwort, Wert erst in den Zusatzparametern
+            pid, size, raw = int(parts[3]), int(parts[4]), parts[5]
+            self.tech_writes.append((pid, size, raw))
+            pos = {148: 4, 294: 5}.get(pid)
+            if pos is not None:
+                self.extra[pos] = int(raw, 16)
+            answer = None
+        elif req.startswith("C|C|ScriviGiornoChrono|"):
+            self.chrono[int(parts[3])] = P.decode_chrono_day(parts[4])
+            answer = make_info_line(self.fields)
+        elif req.startswith("C|C|SalvaDataOra|"):
+            self.clock = parts[3]
+            answer = "AA|" + parts[3]
+        elif req == "C|C|RecuperoInfo":
+            answer = make_info_line(self.fields)
+        elif req == "C|C|RecuperoParametriExtra":
+            answer = self.extra_line()
+        elif req == "C|C|RecuperoGiornoChrono":
+            answer = self.chrono_line()
+        if answer is None:
+            return
         await self.send(
             P.sio_event(
                 "rispondo",
@@ -145,6 +188,10 @@ class FakeStove:
             self.fields[1] = 3 if val == 1 else 40
         elif pid == 42:
             self.fields[26] = val
+        elif pid == 51:
+            self.fields[27] = val
+        elif pid == 58:
+            self.season = val
         else:
             field = {41: 23, 50: 49, 1111: 25}[pid]
             self.fields[field] = val

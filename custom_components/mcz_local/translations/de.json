@@ -28,12 +28,64 @@
         "name": "Störung"
       }
     },
+    "button": {
+      "sync_clock": {
+        "name": "Uhr des Ofens stellen"
+      }
+    },
+    "number": {
+      "boiler_hysteresis_neg": {
+        "name": "Kessel-Hysterese unten"
+      },
+      "boiler_hysteresis_pos": {
+        "name": "Kessel-Hysterese oben"
+      },
+      "boiler_setpoint": {
+        "name": "Kessel-Solltemperatur"
+      },
+      "eco_hysteresis_neg": {
+        "name": "Eco-Stop-Hysterese unten"
+      },
+      "eco_hysteresis_pos": {
+        "name": "Eco-Stop-Hysterese oben"
+      },
+      "eco_stop_delay": {
+        "name": "Eco-Stop Abschaltverzögerung"
+      },
+      "pump_min_temperature": {
+        "name": "Pumpe ab Wassertemperatur"
+      },
+      "room_hysteresis_neg": {
+        "name": "Raum-Hysterese unten"
+      },
+      "room_hysteresis_pos": {
+        "name": "Raum-Hysterese oben"
+      }
+    },
+    "select": {
+      "season": {
+        "name": "Sommer/Winter",
+        "state": {
+          "summer": "Sommer",
+          "winter": "Winter"
+        }
+      }
+    },
     "sensor": {
       "ambient_temperature": {
         "name": "Raumtemperatur"
       },
       "boiler_temperature": {
         "name": "Wassertemperatur"
+      },
+      "chrono_program": {
+        "name": "Zeitprogramm jetzt",
+        "state": {
+          "off": "Aus",
+          "t1": "T1",
+          "t2": "T2",
+          "t3": "T3"
+        }
       },
       "fume_fan_rpm": {
         "name": "Abgasgebläse"
@@ -64,6 +116,15 @@
       },
       "return_temperature": {
         "name": "Rücklauftemperatur"
+      },
+      "room_probe": {
+        "name": "Quelle Raumfühler",
+        "state": {
+          "ambient": "Fühler im Ofen",
+          "thermostat": "Externer Thermostat",
+          "unknown": "Unbekannt",
+          "wifi": "Wi-Fi-Sonde"
+        }
       },
       "state": {
         "name": "Zustand",
@@ -118,8 +179,20 @@
     }
   },
   "exceptions": {
+    "boiler_setpoint_out_of_range": {
+      "message": "Die Kessel-Solltemperatur muss zwischen {min} und {max} °C liegen."
+    },
+    "invalid_chrono": {
+      "message": "Das Zeitprogramm ist ungültig."
+    },
+    "invalid_chrono_program": {
+      "message": "Das Zeitprogramm ist ungültig: {reason}. Uhrzeiten nur zur vollen oder halben Stunde, z. B. 06:30."
+    },
     "not_connected": {
       "message": "Der Ofen ist nicht verbunden. Befehl nicht gesendet."
+    },
+    "not_loaded": {
+      "message": "Die MCZ-Integration ist nicht eingerichtet."
     },
     "port_in_use": {
       "message": "Port {port} lässt sich nicht öffnen ({error}). Benutzt ein anderes Programm diesen Port?"
@@ -132,6 +205,9 @@
     },
     "too_soon": {
       "message": "Schutz gegen Takten: Der Ofen darf erst in {minutes} Minuten wieder eingeschaltet werden."
+    },
+    "value_out_of_range": {
+      "message": "Der Wert muss zwischen {min} und {max} liegen."
     }
   },
   "options": {
@@ -141,14 +217,49 @@
     "step": {
       "init": {
         "data": {
-          "room_sensor": "Raumtemperatur-Fühler"
+          "room_sensor": "Raumtemperatur-Fühler",
+          "sync_clock": "Uhr des Ofens automatisch stellen"
         },
         "data_description": {
-          "room_sensor": "Leer lassen, um den Fühler im Ofen zu verwenden."
+          "room_sensor": "Leer lassen, um den Fühler im Ofen zu verwenden.",
+          "sync_clock": "Stellt Datum und Uhrzeit des Ofens bei jeder Anmeldung und alle 6 Stunden, damit das Zeitprogramm auch nach der Zeitumstellung stimmt."
         },
         "description": "Optional: einen eigenen Raumfühler für das Thermostat verwenden. Der Fühler im Ofen sitzt nah an der Wärme und misst oft zu hoch.",
         "title": "Optionen"
       }
+    }
+  },
+  "selector": {
+    "day": {
+      "options": {
+        "fri": "Freitag",
+        "mon": "Montag",
+        "sat": "Samstag",
+        "sun": "Sonntag",
+        "thu": "Donnerstag",
+        "tue": "Dienstag",
+        "wed": "Mittwoch"
+      }
+    }
+  },
+  "services": {
+    "set_chrono_day": {
+      "description": "Schreibt das Zeitprogramm für einen oder mehrere Wochentage in den Ofen. Jeder Abschnitt gilt bis zum nächsten; vor dem ersten ist der Ofen aus.",
+      "fields": {
+        "days": {
+          "description": "Welche Wochentage.",
+          "name": "Tage"
+        },
+        "program": {
+          "description": "Liste von Abschnitten mit Startzeit (HH:MM, volle oder halbe Stunde) und Stufe (off, t1, t2, t3).",
+          "name": "Programm"
+        }
+      },
+      "name": "Zeitprogramm setzen"
+    },
+    "sync_clock": {
+      "description": "Stellt Datum und Uhrzeit des Ofens auf die Zeit von Home Assistant.",
+      "name": "Uhr des Ofens stellen"
     }
   }
 }

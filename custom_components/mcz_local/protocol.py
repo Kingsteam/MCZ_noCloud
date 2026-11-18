@@ -14,10 +14,19 @@ Ablauf (Ofen = Client, Integration = Server):
 
 from __future__ import annotations
 
+from datetime import datetime
 import json
 from typing import Any
 
-from .const import ALLOWED_WRITE_IDS, SETPOINT_MAX_C, SETPOINT_MIN_C
+from .const import (
+    ALLOWED_WRITE_IDS,
+    BOILER_SETPOINT_MAX_C,
+    BOILER_SETPOINT_MIN_C,
+    FORBIDDEN_TECH_IDS,
+    SETPOINT_MAX_C,
+    SETPOINT_MIN_C,
+    TECH_PARAMS,
+)
 
 PING_INTERVAL_MS = 5000
 PING_TIMEOUT_MS = 25000
@@ -159,6 +168,108 @@ def setpoint_raw(celsius: float) -> int:
     if not SETPOINT_MIN_C <= celsius <= SETPOINT_MAX_C:
         raise ValueError(f"Solltemperatur {celsius} außerhalb der Grenzen")
     return round(celsius * 2)
+
+
+def boiler_setpoint_raw(celsius: float) -> int:
+    """Kessel-Solltemperatur in °C in halbe Grad umrechnen, mit Grenzen."""
+    if not BOILER_SETPOINT_MIN_C <= celsius <= BOILER_SETPOINT_MAX_C:
+        raise ValueError(f"Kessel-Solltemperatur {celsius} außerhalb der Grenzen")
+    return round(celsius * 2)
+
+
+def build_tech_write(key: str, value: int) -> str:
+    """Technischen Parameter schreiben, nur freigegebene und in den Grenzen.
+
+    Format laut Mitschnitt: „WriteTecniciParametri|ID|Bytes|Wert“, Wert als
+    Hex mit 2 Zeichen je Byte, z. B. 148|2|0078 = 120 Sekunden.
+    """
+    if key not in TECH_PARAMS:
+        raise ValueError(f"Technischer Parameter {key} ist nicht freigegeben")
+    param_id, size, low, high = TECH_PARAMS[key]
+    if param_id in FORBIDDEN_TECH_IDS:  # doppelte Absicherung
+        raise ValueError(f"Parameter {param_id} ist gesperrt")
+    value = int(value)
+    if not low <= value <= high:
+        raise ValueError(f"{key} = {value} außerhalb {low} bis {high}")
+    return f"C|C|WriteTecniciParametri|{param_id}|{size}|{value:0{size * 2}X}"
+
+
+# --- Zeitprogramm (Chrono) ------------------------------------------------------
+# Je Tag 48 halbe Stunden ab 0:00, je 2 Bit: 0 aus, 1 T1, 2 T2, 3 T3.
+# Tag 0 = Sonntag, 1 = Montag … 6 = Samstag (wie im Ofen).
+CHRONO_SLOTS = 48
+CHRONO_LEVELS = (0, 1, 2, 3)
+
+
+def encode_chrono_day(slots: list[int]) -> str:
+    """48 Stufen in 24 Hex-Zeichen packen (höchstwertige Bits zuerst)."""
+    if len(slots) != CHRONO_SLOTS or any(s not in CHRONO_LEVELS for s in slots):
+        raise ValueError("Ein Tag braucht 48 Stufen von 0 bis 3")
+    value = 0
+    for level in slots:
+        value = (value << 2) | level
+    return f"{value:024X}"
+
+
+def decode_chrono_day(text: str) -> list[int]:
+    """24 Hex-Zeichen in 48 Stufen auspacken."""
+    if len(text) != 24:
+        raise ProtocolError("Tagesprogramm muss 24 Hex-Zeichen haben")
+    try:
+        value = int(text, 16)
+    except ValueError as err:
+        raise ProtocolError("Tagesprogramm ist keine Hex-Zahl") from err
+    return [(value >> (2 * (CHRONO_SLOTS - 1 - i))) & 3 for i in range(CHRONO_SLOTS)]
+
+
+def decode_chrono(frame: str) -> dict[str, Any]:
+    """Antwort „04|Tag0|…|Tag6|T1|T2|T3“ auf RecuperoGiornoChrono."""
+    parts = frame.split("|")
+    if len(parts) < 11 or parts[0] != "04":
+        raise ProtocolError("keine Zeitprogramm-Zeile")
+    days = [decode_chrono_day(p) for p in parts[1:8]]
+    try:
+        temps = [int(p, 16) for p in parts[8:11]]
+    except ValueError as err:
+        raise ProtocolError("Chrono-Temperatur ist keine Hex-Zahl") from err
+    return {"days": days, "temperatures": temps}
+
+
+def build_chrono_day(day: int, slots: list[int]) -> str:
+    """Tagesprogramm schreiben (ScriviGiornoChrono)."""
+    if not 0 <= day <= 6:
+        raise ValueError("Tag muss zwischen 0 (Sonntag) und 6 (Samstag) liegen")
+    return f"C|C|ScriviGiornoChrono|{day}|{encode_chrono_day(slots)}"
+
+
+def build_clock(when: datetime) -> str:
+    """Datum und Uhrzeit des Ofens stellen (SalvaDataOra|TTMMJJJJhhmm)."""
+    return f"C|C|SalvaDataOra|{when:%d%m%Y%H%M}"
+
+
+# --- Zusatzparameter (RecuperoParametriExtra) ----------------------------------
+# Antwort „03|…“. Nur Felder, deren Bedeutung im Mitschnitt belegt ist.
+ROOM_PROBES = {0x00: "thermostat", 0x01: "ambient", 0xFF: "wifi"}
+RELAY_AUX = {0xFF: "not_connected", 0x01: "buffer_pump"}
+
+
+def decode_extra(frame: str) -> dict[str, Any]:
+    """Zusatzparameter lesen: Fühlerquelle, Eco-Stop-Werte, Relais."""
+    parts = frame.split("|")
+    if len(parts) < 23 or parts[0] != "03":
+        raise ProtocolError("keine Zusatzparameter-Zeile")
+    try:
+        probe = int(parts[3], 16)
+        relay = int(parts[22], 16)
+        out: dict[str, Any] = {
+            "eco_stop_delay": int(parts[4], 16),
+            "eco_hysteresis_neg": int(parts[5], 16),
+        }
+    except ValueError as err:
+        raise ProtocolError("Zusatzparameter ist keine Hex-Zahl") from err
+    out["room_probe"] = ROOM_PROBES.get(probe, "unknown")
+    out["relay_aux"] = RELAY_AUX.get(relay, "other")
+    return out
 
 
 # --- Socket.IO / Engine.IO 3 -------------------------------------------------

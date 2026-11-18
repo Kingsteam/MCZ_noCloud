@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import base64
 from collections.abc import Callable
+import contextlib
 from dataclasses import dataclass, field
 import hashlib
 import logging
@@ -20,7 +21,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
 from . import protocol as P
-from .const import MIN_WRITE_GAP_S
+from .const import MIN_WRITE_GAP_S, SLOW_POLL_EVERY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,6 +55,9 @@ class StoveStatus:
     info: dict[str, Any] = field(default_factory=dict)
     last_seen: float | None = None  # time.time() der letzten Nachricht
     last_info: float | None = None  # time.time() der letzten Statuszeile
+    extra: dict[str, Any] = field(default_factory=dict)  # Zusatzparameter (03)
+    chrono: dict[str, Any] = field(default_factory=dict)  # Zeitprogramm (04)
+    clock_set: str | None = None  # zuletzt bestätigte Uhrzeit (AA|TTMMJJJJhhmm)
 
 
 # --- HTTP / WebSocket-Hilfen -------------------------------------------------
@@ -202,10 +206,15 @@ class StoveConnection:
             _LOGGER.debug("Ereignis vom Ofen: %s", name)
 
     async def _poll(self) -> None:
-        """Status regelmäßig abfragen."""
+        """Status regelmäßig abfragen, Zusatzparameter und Zeitprogramm seltener."""
+        n = 0
         try:
             while True:
+                if n % self._server.slow_poll_every == 0:
+                    await self.send_request(P.build_read("RecuperoParametriExtra"))
+                    await self.send_request(P.build_read("RecuperoGiornoChrono"))
                 await self.send_request(P.build_read("RecuperoInfo"))
+                n += 1
                 await asyncio.sleep(self._server.poll_interval)
         except (ConnectionError, RuntimeError) as err:
             _LOGGER.debug("Abfrage beendet: %s", err)
@@ -229,6 +238,8 @@ class McZServer:
         self._write_lock = asyncio.Lock()
         self._last_write = 0.0  # time.monotonic() des letzten Schreibbefehls
         self.write_gap = MIN_WRITE_GAP_S
+        self.slow_poll_every = SLOW_POLL_EVERY
+        self._join_listeners: list[Callable[[], None]] = []
 
     # Lebenszyklus
     async def start(self) -> None:
@@ -247,10 +258,16 @@ class McZServer:
 
     # Befehle
     async def async_write(self, param_id: int, value: int) -> None:
-        """Schreibbefehl senden. Nur freigegebene IDs (build_write prüft das),
-        höchstens ein Befehl je write_gap Sekunden. Der Ofen antwortet mit einer
-        vollständigen Statuszeile, die über on_answer ankommt."""
-        richiesta = P.build_write(param_id, value)
+        """Schreibbefehl senden. Nur freigegebene IDs (build_write prüft das).
+        Der Ofen antwortet mit einer vollständigen Statuszeile."""
+        await self.async_send(P.build_write(param_id, value))
+
+    async def async_send(self, richiesta: str, refresh: str | None = None) -> None:
+        """Befehl senden, höchstens einer je write_gap Sekunden.
+
+        Nur mit Befehlen aus den build_*-Funktionen aufrufen, die die
+        Sicherheitsgrenzen prüfen. Mit refresh wird danach diese Leseanfrage
+        geschickt (z. B. Zusatzparameter nach einem technischen Wert)."""
         async with self._write_lock:
             if self._conn is None or not self.status.connected:
                 raise NotConnectedError
@@ -265,12 +282,24 @@ class McZServer:
             except (ConnectionError, RuntimeError) as err:
                 raise NotConnectedError from err
             self._last_write = time.monotonic()
+            if refresh:
+                with contextlib.suppress(ConnectionError, RuntimeError):
+                    await self._conn.send_request(P.build_read(refresh))
 
     # Beobachter
+    def add_join_listener(self, cb: Callable[[], None]) -> Callable[[], None]:
+        """Rückruf, sobald sich der Ofen (neu) anmeldet."""
+        self._join_listeners.append(cb)
+        return lambda: self._join_listeners.remove(cb)
+
     def add_listener(self, cb: Callable[[], None]) -> Callable[[], None]:
         """Rückruf bei jeder Statusänderung; liefert Abmeldefunktion."""
         self._listeners.append(cb)
         return lambda: self._listeners.remove(cb)
+
+    def notify(self) -> None:
+        """Beobachter von außen anstoßen (z. B. nach einem gemerkten Wert)."""
+        self._notify()
 
     def _notify(self) -> None:
         for cb in list(self._listeners):
@@ -294,17 +323,29 @@ class McZServer:
         self.status.connected = True
         _LOGGER.info("Ofen angemeldet (Firmware %s)", identity.get("revision"))
         self._notify()
+        for cb in list(self._join_listeners):
+            try:
+                cb()
+            except Exception:
+                _LOGGER.exception("Fehler bei der Anmeldung des Ofens")
 
     def on_answer(self, frame: str) -> None:
-        if not frame.startswith("01|"):
-            return
+        kind = frame[:3]
         try:
-            info = P.decode_info(frame)
+            if kind == "01|":
+                self.status.info = P.decode_info(frame)
+                self.status.last_info = time.time()
+            elif kind == "03|":
+                self.status.extra = P.decode_extra(frame)
+            elif kind == "04|":
+                self.status.chrono = P.decode_chrono(frame)
+            elif kind == "AA|":
+                self.status.clock_set = frame[3:]
+            else:
+                return
         except P.ProtocolError as err:
-            _LOGGER.warning("Statuszeile nicht lesbar: %s", err)
+            _LOGGER.warning("Antwort des Ofens nicht lesbar (%s): %s", kind, err)
             return
-        self.status.info = info
-        self.status.last_info = time.time()
         self._notify()
 
     # Verbindungsaufbau

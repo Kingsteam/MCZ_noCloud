@@ -4,6 +4,19 @@ Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-18
+### Hinzugefügt
+- Kessel-Solltemperatur (50–80 °C) und Sommer/Winter.
+- Feineinstellungen unter *Konfiguration*: Kessel-, Raum- und Eco-Stop-Hysterese, Eco-Stop-Abschaltverzögerung, Pumpe ab Wassertemperatur. Jeder Wert mit festen Grenzen.
+- Zeitprogramm: Sensor „Zeitprogramm jetzt“ mit dem Programm je Wochentag; Dienst `mcz_local.set_chrono_day`.
+- Uhr des Ofens: Knopf, Dienst `mcz_local.sync_clock` und automatisch bei jeder Anmeldung sowie alle 6 Stunden (abschaltbar).
+- Diagnose „Quelle Raumfühler“ (nur Anzeige).
+- `docs/PROTOKOLL.md`: alle Befehle aus dem Mitschnitt mit der MCZ-App.
+### Sicherheit
+- Quelle Raumfühler (356), Relais-Ausgang (365) und Pelletstand-Sensor (148) sind bewusst nicht schreibbar.
+### Wichtig
+- Nur simuliert getestet. Die Befehle sind im Mitschnitt mit der MCZ-App bestätigt; „Sommer“ (Wert 1) ist angenommen.
+
 ## [0.4.0] - 2026-11-16
 ### Hinzugefügt
 - Thermostat „Pelletofen“: Ein/Aus und Solltemperatur (5–30 °C, halbe Grad).

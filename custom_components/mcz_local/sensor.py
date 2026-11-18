@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -20,10 +21,13 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.util import dt as dt_util
 
 from . import McZConfigEntry
 from .entity import McZEntity
-from .protocol import STATES
+from .protocol import ROOM_PROBES, STATES
+from .services import DAYS, LEVELS, slots_to_program
 
 STATE_OPTIONS = sorted({*STATES.values(), "error", "unknown"})
 
@@ -151,6 +155,9 @@ async def async_setup_entry(
 
     entry.async_on_unload(server.add_listener(_add_optional))
     _add_optional()
+    async_add_entities(
+        [McZRoomProbe(server, entry.entry_id), McZChrono(server, entry.entry_id)]
+    )
 
 
 class McZSensor(McZEntity, SensorEntity):
@@ -161,3 +168,74 @@ class McZSensor(McZEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         return self.entity_description.value(self._server.status.info)
+
+
+class McZRoomProbe(McZEntity, SensorEntity):
+    """Woher der Ofen die Raumtemperatur nimmt (nur lesen, siehe const.py)."""
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, server, entry_id: str) -> None:
+        super().__init__(
+            server,
+            entry_id,
+            SensorEntityDescription(key="room_probe", translation_key="room_probe"),
+        )
+        self._attr_options = [*sorted(set(ROOM_PROBES.values())), "unknown"]
+
+    @property
+    def native_value(self) -> str | None:
+        return self._server.status.extra.get("room_probe")
+
+
+class McZChrono(McZEntity, SensorEntity):
+    """Zeitprogramm: Zustand = Stufe jetzt, Attribute = Programm je Tag."""
+
+    _attr_device_class = SensorDeviceClass.ENUM
+
+    def __init__(self, server, entry_id: str) -> None:
+        super().__init__(
+            server,
+            entry_id,
+            SensorEntityDescription(
+                key="chrono_program", translation_key="chrono_program"
+            ),
+        )
+        self._attr_options = list(LEVELS)
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        # Stufe wechselt zur halben Stunde, auch ohne neue Daten vom Ofen
+        self.async_on_remove(
+            async_track_time_interval(self.hass, self._tick, timedelta(minutes=1))
+        )
+
+    @callback
+    def _tick(self, _now: datetime) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        return super().available and bool(self._server.status.chrono)
+
+    @property
+    def native_value(self) -> str | None:
+        chrono = self._server.status.chrono
+        if not chrono:
+            return None
+        now = dt_util.now()
+        day = (now.weekday() + 1) % 7  # Python: Montag 0; Ofen: Sonntag 0
+        level = chrono["days"][day][now.hour * 2 + now.minute // 30]
+        return {v: k for k, v in LEVELS.items()}[level]
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        chrono = self._server.status.chrono
+        if not chrono:
+            return None
+        t1, t2, t3 = chrono["temperatures"]
+        attrs: dict[str, Any] = {"t1": t1, "t2": t2, "t3": t3}
+        for name, num in DAYS.items():
+            attrs[name] = slots_to_program(chrono["days"][num])
+        return attrs

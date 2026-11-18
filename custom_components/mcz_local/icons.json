@@ -30,6 +30,12 @@
       },
       "state_code": {
         "default": "mdi:numeric"
+      },
+      "room_probe": {
+        "default": "mdi:thermometer-lines"
+      },
+      "chrono_program": {
+        "default": "mdi:calendar-clock"
       }
     },
     "switch": {
@@ -45,6 +51,56 @@
           "off": "mdi:volume-off"
         }
       }
+    },
+    "number": {
+      "boiler_setpoint": {
+        "default": "mdi:water-boiler"
+      },
+      "boiler_hysteresis_pos": {
+        "default": "mdi:arrow-collapse-up"
+      },
+      "boiler_hysteresis_neg": {
+        "default": "mdi:arrow-collapse-down"
+      },
+      "room_hysteresis_pos": {
+        "default": "mdi:arrow-collapse-up"
+      },
+      "room_hysteresis_neg": {
+        "default": "mdi:arrow-collapse-down"
+      },
+      "eco_hysteresis_pos": {
+        "default": "mdi:leaf"
+      },
+      "eco_hysteresis_neg": {
+        "default": "mdi:leaf"
+      },
+      "eco_stop_delay": {
+        "default": "mdi:timer-sand"
+      },
+      "pump_min_temperature": {
+        "default": "mdi:pump"
+      }
+    },
+    "select": {
+      "season": {
+        "default": "mdi:snowflake",
+        "state": {
+          "summer": "mdi:white-balance-sunny"
+        }
+      }
+    },
+    "button": {
+      "sync_clock": {
+        "default": "mdi:clock-check"
+      }
+    }
+  },
+  "services": {
+    "set_chrono_day": {
+      "service": "mdi:calendar-edit"
+    },
+    "sync_clock": {
+      "service": "mdi:clock-check"
     }
   }
 }

@@ -28,12 +28,64 @@
         "name": "Fault"
       }
     },
+    "button": {
+      "sync_clock": {
+        "name": "Set stove clock"
+      }
+    },
+    "number": {
+      "boiler_hysteresis_neg": {
+        "name": "Boiler hysteresis below"
+      },
+      "boiler_hysteresis_pos": {
+        "name": "Boiler hysteresis above"
+      },
+      "boiler_setpoint": {
+        "name": "Boiler target temperature"
+      },
+      "eco_hysteresis_neg": {
+        "name": "Eco stop hysteresis below"
+      },
+      "eco_hysteresis_pos": {
+        "name": "Eco stop hysteresis above"
+      },
+      "eco_stop_delay": {
+        "name": "Eco stop switch-off delay"
+      },
+      "pump_min_temperature": {
+        "name": "Pump start temperature"
+      },
+      "room_hysteresis_neg": {
+        "name": "Room hysteresis below"
+      },
+      "room_hysteresis_pos": {
+        "name": "Room hysteresis above"
+      }
+    },
+    "select": {
+      "season": {
+        "name": "Season",
+        "state": {
+          "summer": "Summer",
+          "winter": "Winter"
+        }
+      }
+    },
     "sensor": {
       "ambient_temperature": {
         "name": "Room temperature"
       },
       "boiler_temperature": {
         "name": "Water temperature"
+      },
+      "chrono_program": {
+        "name": "Chrono level now",
+        "state": {
+          "off": "Off",
+          "t1": "T1",
+          "t2": "T2",
+          "t3": "T3"
+        }
       },
       "fume_fan_rpm": {
         "name": "Flue gas fan"
@@ -64,6 +116,15 @@
       },
       "return_temperature": {
         "name": "Return temperature"
+      },
+      "room_probe": {
+        "name": "Room sensor source",
+        "state": {
+          "ambient": "Stove sensor",
+          "thermostat": "External thermostat",
+          "unknown": "Unknown",
+          "wifi": "Wi-Fi probe"
+        }
       },
       "state": {
         "name": "State",
@@ -118,8 +179,20 @@
     }
   },
   "exceptions": {
+    "boiler_setpoint_out_of_range": {
+      "message": "Boiler target temperature must be between {min} and {max} °C."
+    },
+    "invalid_chrono": {
+      "message": "Chrono program is not valid."
+    },
+    "invalid_chrono_program": {
+      "message": "Chrono program is not valid: {reason}. Times only on the full or half hour, e.g. 06:30."
+    },
     "not_connected": {
       "message": "The stove is not connected. Command not sent."
+    },
+    "not_loaded": {
+      "message": "The MCZ integration is not set up."
     },
     "port_in_use": {
       "message": "Port {port} cannot be opened ({error}). Is another program using it?"
@@ -132,6 +205,9 @@
     },
     "too_soon": {
       "message": "Anti-cycling protection: the stove may be switched on again in {minutes} minutes."
+    },
+    "value_out_of_range": {
+      "message": "Value must be between {min} and {max}."
     }
   },
   "options": {
@@ -141,14 +217,49 @@
     "step": {
       "init": {
         "data": {
-          "room_sensor": "Room temperature sensor"
+          "room_sensor": "Room temperature sensor",
+          "sync_clock": "Set stove clock automatically"
         },
         "data_description": {
-          "room_sensor": "Leave empty to use the stove's own sensor."
+          "room_sensor": "Leave empty to use the stove's own sensor.",
+          "sync_clock": "Sets date and time of the stove when it connects and every 6 hours, so the chrono program follows daylight saving time."
         },
         "description": "Optional: use a room temperature sensor of your own for the thermostat. The sensor inside the stove sits close to the heat and often reads too high.",
         "title": "Options"
       }
+    }
+  },
+  "selector": {
+    "day": {
+      "options": {
+        "fri": "Friday",
+        "mon": "Monday",
+        "sat": "Saturday",
+        "sun": "Sunday",
+        "thu": "Thursday",
+        "tue": "Tuesday",
+        "wed": "Wednesday"
+      }
+    }
+  },
+  "services": {
+    "set_chrono_day": {
+      "description": "Writes the chrono program of one or more weekdays to the stove. Each period lasts until the next one; before the first period the stove is off.",
+      "fields": {
+        "days": {
+          "description": "Weekdays to set.",
+          "name": "Days"
+        },
+        "program": {
+          "description": "List of periods with start time (HH:MM, full or half hour) and level (off, t1, t2, t3).",
+          "name": "Program"
+        }
+      },
+      "name": "Set chrono program"
+    },
+    "sync_clock": {
+      "description": "Sets date and time of the stove to the Home Assistant time.",
+      "name": "Set stove clock"
     }
   }
 }

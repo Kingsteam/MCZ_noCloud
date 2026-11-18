@@ -5,12 +5,17 @@
   letzten Ausschalten (gegen Takten). Der Zeitpunkt wird gespeichert und
   übersteht einen Neustart von Home Assistant.
 - Solltemperatur nur innerhalb der Grenzen.
+- Kessel-Soll, Sommer/Winter, technische Parameter und Zeitprogramm nur über
+  die geprüften build_*-Funktionen. Werte, die der Ofen nicht zurückmeldet,
+  merkt sich die Steuerung als „zuletzt gesetzt“.
 """
 
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 import time
+from typing import Any
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -18,9 +23,14 @@ from homeassistant.helpers.storage import Store
 
 from . import protocol as P
 from .const import (
+    ALLOWED_SEASON_VALUES,
+    BOILER_SETPOINT_MAX_C,
+    BOILER_SETPOINT_MIN_C,
+    CMD_BOILER_SETPOINT,
     CMD_CHRONO,
     CMD_ECO,
     CMD_POWER,
+    CMD_SEASON,
     CMD_SETPOINT,
     CMD_SOUND,
     DOMAIN,
@@ -29,6 +39,7 @@ from .const import (
     POWER_ON,
     SETPOINT_MAX_C,
     SETPOINT_MIN_C,
+    TECH_PARAMS,
 )
 from .server import McZServer, NotConnectedError
 
@@ -59,11 +70,24 @@ class StoveController:
         self.server = server
         self._store: Store[dict] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.{entry_id}")
         self.last_stop: float | None = None  # time.time() des letzten Ausgehens
+        # Zuletzt gesetzte Werte, die der Ofen nicht zurückmeldet
+        self.assumed: dict[str, Any] = {}
         self._was_burning: bool | None = None
 
     async def async_load(self) -> None:
         data = await self._store.async_load() or {}
         self.last_stop = data.get("last_stop")
+        self.assumed = dict(data.get("assumed") or {})
+
+    def _save(self) -> None:
+        self._store.async_delay_save(
+            lambda: {"last_stop": self.last_stop, "assumed": self.assumed}, 1
+        )
+
+    def _remember(self, key: str, value: Any) -> None:
+        self.assumed[key] = value
+        self._save()
+        self.server.notify()  # Entitäten sofort aktualisieren
 
     @callback
     def observe(self) -> None:
@@ -78,7 +102,7 @@ class StoveController:
 
     def _mark_stop(self) -> None:
         self.last_stop = time.time()
-        self._store.async_delay_save(lambda: {"last_stop": self.last_stop}, 1)
+        self._save()
 
     def seconds_until_on_allowed(self) -> float:
         if self.last_stop is None:
@@ -88,6 +112,12 @@ class StoveController:
     async def _write(self, param_id: int, value: int) -> None:
         try:
             await self.server.async_write(param_id, value)
+        except NotConnectedError as err:
+            raise _error("not_connected") from err
+
+    async def _send(self, richiesta: str, refresh: str | None = None) -> None:
+        try:
+            await self.server.async_send(richiesta, refresh)
         except NotConnectedError as err:
             raise _error("not_connected") from err
 
@@ -125,3 +155,53 @@ class StoveController:
     async def async_set_flag(self, key: str, on: bool) -> None:
         param_id, _ = FLAGS[key]
         await self._write(param_id, 1 if on else 0)
+
+    async def async_set_boiler_setpoint(self, celsius: float) -> None:
+        try:
+            raw = P.boiler_setpoint_raw(celsius)
+        except ValueError as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="boiler_setpoint_out_of_range",
+                translation_placeholders={
+                    "min": str(BOILER_SETPOINT_MIN_C),
+                    "max": str(BOILER_SETPOINT_MAX_C),
+                },
+            ) from err
+        await self._write(CMD_BOILER_SETPOINT, raw)
+
+    async def async_set_season(self, value: int) -> None:
+        if value not in ALLOWED_SEASON_VALUES:
+            raise ValueError(value)
+        await self._write(CMD_SEASON, value)
+        self._remember("season", value)
+
+    def tech_value(self, key: str) -> Any:
+        """Aktueller Wert: vom Ofen gemeldet, sonst zuletzt gesetzt."""
+        reported = self.server.status.extra.get(key)
+        return reported if reported is not None else self.assumed.get(key)
+
+    async def async_set_tech(self, key: str, value: int) -> None:
+        _, _, low, high = TECH_PARAMS[key]
+        try:
+            richiesta = P.build_tech_write(key, value)
+        except ValueError as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="value_out_of_range",
+                translation_placeholders={"min": str(low), "max": str(high)},
+            ) from err
+        await self._send(richiesta, refresh="RecuperoParametriExtra")
+        self._remember(key, int(value))
+
+    async def async_set_chrono_day(self, day: int, slots: list[int]) -> None:
+        try:
+            richiesta = P.build_chrono_day(day, slots)
+        except ValueError as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="invalid_chrono"
+            ) from err
+        await self._send(richiesta, refresh="RecuperoGiornoChrono")
+
+    async def async_sync_clock(self, now: datetime) -> None:
+        await self._send(P.build_clock(now))

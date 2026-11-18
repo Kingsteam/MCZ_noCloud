@@ -27,12 +27,16 @@ Ofen (Maestro-Modul) ── TCP, Socket.IO v2 ──> [Router: Umleitung der Clo
 - Solltemperatur 5–30 °C.
 - Höchstens ein Befehl pro Sekunde.
 - Gegen Takten: nach „Aus“ mindestens 30 Minuten Pause vor dem nächsten „Ein“.
+- Kessel-Soll 50–80 °C; Sommer/Winter nur 0 oder 1.
+- Technische Parameter nur aus `TECH_PARAMS`, je mit Grenzen. Gesperrt: 356 (Quelle Raumfühler), 365 (Relais-Ausgang); normaler Parameter 148 (Pelletstand-Sensor) ist nicht freigegeben.
+- Zeitprogramm nur als 48 Stufen 0–3 je Tag, Tag 0–6.
 
 ## Phasen
 1. ✅ Grundgerüst, Protokoll-Modul, Tests, GitHub-Prüfungen
 2. ✅ Server im HA-Prozess + simulierter Ofen in den Tests
 3. ✅ Nur lesen: Sensoren, „verbunden“, Test-Instanz, Handbuch mit Bildschirmfotos
 4. ✅ (simuliert) Schalten: Climate und Schalter mit Schutzgrenzen (zuerst simuliert, dann gemeinsam am echten Ofen)
+4b. ✅ (simuliert) Alle Alltags-Befehle der MCZ-App aus dem Mitschnitt: Kessel-Soll, Sommer/Winter, Hysteresen, Pumpe, Eco-Stop, Zeitprogramm, Uhr (`docs/PROTOKOLL.md`)
 5. Dauerbetrieb (Installation über den Marketplace) und `docs/NETZWERK.md`: allgemeine Anleitung zur Umleitung im Router (DNAT, bei gleichem Netz zusätzlich Masquerade) mit einem neutralen Beispiel, ohne echte Adressen
 6. Später: Heizungssteuerung nach Messphase. Raumtemperatur dabei aus einem oder mehreren **externen** Raumfühlern (der Fühler im Ofen misst zu hoch), z. B. Mittelwert oder Minimum mehrerer Räume.
 
