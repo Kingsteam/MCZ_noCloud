@@ -200,3 +200,25 @@ async def test_clock_sync_can_be_switched_off(hass: HomeAssistant, cleanup) -> N
     await hass.async_block_till_done()
     assert stove.clock is None
     assert not any(r.startswith("C|C|SalvaDataOra") for r in stove.requests)
+
+
+async def test_not_connected_issue(hass: HomeAssistant, cleanup) -> None:  # noqa: F811
+    """Meldet sich der Ofen nicht, erscheint nach 10 Minuten ein Hinweis."""
+    from homeassistant.helpers import issue_registry as ir
+
+    from .fake_stove import FakeStove
+
+    entry, _ = await start(hass, stove=False)
+    registry = ir.async_get(hass)
+    assert registry.async_get_issue(DOMAIN, "stove_not_connected") is None
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=11))
+    await hass.async_block_till_done()
+    issue = registry.async_get_issue(DOMAIN, "stove_not_connected")
+    assert issue is not None
+    assert issue.learn_more_url.endswith("docs/NETZWERK.md")
+
+    stove = FakeStove(entry.runtime_data.server.port)
+    cleanup.append(stove)
+    await stove.connect()
+    await until(hass, lambda: entry.runtime_data.server.status.connected)
+    assert registry.async_get_issue(DOMAIN, "stove_not_connected") is None

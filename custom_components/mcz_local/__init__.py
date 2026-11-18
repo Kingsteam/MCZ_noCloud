@@ -15,8 +15,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers import config_validation as cv, device_registry as dr
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers import (
+    config_validation as cv,
+    device_registry as dr,
+    issue_registry as ir,
+)
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
@@ -28,11 +32,15 @@ from .const import (
     DEFAULT_SYNC_CLOCK,
     DOMAIN,
     LISTEN_HOST,
+    NETWORK_DOCS_URL,
+    NOT_CONNECTED_ISSUE_DELAY_S,
     POLL_INTERVAL_S,
 )
 from .control import StoveController
 from .server import McZServer
 from .services import async_setup_services
+
+ISSUE_NOT_CONNECTED = "stove_not_connected"
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -110,6 +118,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: McZConfigEntry) -> bool:
 
     entry.async_on_unload(server.add_listener(_update_device))
 
+    # Einrichtungshilfe: meldet sich der Ofen nicht, Hinweis mit Netzwerk-Anleitung
+    @callback
+    def _check_connected(_now: object) -> None:
+        if server.status.connected:
+            return
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            ISSUE_NOT_CONNECTED,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=ISSUE_NOT_CONNECTED,
+            translation_placeholders={"port": str(server.port)},
+            learn_more_url=NETWORK_DOCS_URL,
+        )
+
+    @callback
+    def _clear_issue() -> None:
+        if server.status.connected:
+            ir.async_delete_issue(hass, DOMAIN, ISSUE_NOT_CONNECTED)
+
+    entry.async_on_unload(
+        async_call_later(hass, NOT_CONNECTED_ISSUE_DELAY_S, _check_connected)
+    )
+    entry.async_on_unload(server.add_join_listener(_clear_issue))
+
     # Uhr des Ofens stellen: bei jeder Anmeldung und danach regelmäßig. Sonst
     # läuft das Zeitprogramm nach einer Zeitumstellung zur falschen Zeit.
     if entry.options.get(CONF_SYNC_CLOCK, DEFAULT_SYNC_CLOCK):
@@ -141,6 +175,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: McZConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: McZConfigEntry) -> bool:
     """Eintrag entladen: Entitäten entfernen, Server stoppen."""
+    ir.async_delete_issue(hass, DOMAIN, ISSUE_NOT_CONNECTED)
     ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if ok:
         await entry.runtime_data.server.stop()

@@ -4,6 +4,11 @@ Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-18
+### Hinzugefügt
+- `docs/NETZWERK.md`: allgemeine Anleitung zur Umleitung im Router (DNAT, bei gleichem Netz Masquerade), mit Beispielen für UniFi, OPNsense/pfSense, OpenWrt, MikroTik.
+- Einrichtungshilfe: Meldet sich der Ofen 10 Minuten nach dem Start nicht, erscheint unter *Reparaturen* ein Hinweis mit Link zur Anleitung. Er verschwindet, sobald sich der Ofen meldet.
+
 ## [0.5.0] - 2026-11-18
 ### Hinzugefügt
 - Kessel-Solltemperatur (50–80 °C) und Sommer/Winter.

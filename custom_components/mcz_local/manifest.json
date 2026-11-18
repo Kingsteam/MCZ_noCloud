@@ -5,11 +5,11 @@
     "@kingsteam"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/kingsteam/MCZ_noCloud",
+  "documentation": "https://github.com/Kingsteam/MCZ_noCloud",
   "integration_type": "device",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/kingsteam/MCZ_noCloud/issues",
+  "issue_tracker": "https://github.com/Kingsteam/MCZ_noCloud/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.5.0"
+  "version": "0.5.1"
 }

@@ -37,6 +37,11 @@ CMD_CHRONO: Final = 1111
 POLL_INTERVAL_S: Final = 10
 # Seltener: Zusatzparameter und Zeitprogramm, alle n Status-Abfragen
 SLOW_POLL_EVERY: Final = 30
+# Ofen hat sich so lange nach dem Start nicht gemeldet: Hinweis unter Reparaturen
+NOT_CONNECTED_ISSUE_DELAY_S: Final = 10 * 60
+NETWORK_DOCS_URL: Final = (
+    "https://github.com/Kingsteam/MCZ_noCloud/blob/main/docs/NETZWERK.md"
+)
 # Uhr des Ofens stellen: bei jeder Anmeldung und danach so oft (Sekunden)
 CLOCK_SYNC_INTERVAL_S: Final = 6 * 3600
 

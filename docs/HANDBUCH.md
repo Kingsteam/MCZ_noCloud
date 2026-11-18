@@ -11,7 +11,7 @@ Das WLAN-Modul (Maestro) im Ofen meldet sich von selbst beim MCZ-Server. Wenn de
 1. Integration installieren (später über *Einstellungen → Marketplace*).
 2. *Einstellungen → Geräte & Dienste → Integration hinzufügen → „MCZ Maestro lokal“*.
 3. Port eingeben (Standard **9000**, wie beim MCZ-Server). Nur ändern, wenn auf Home Assistant schon etwas diesen Port benutzt; dann muss der Router auf den neuen Port umleiten.
-4. Umleitung im Router einrichten (Anleitung folgt in `docs/NETZWERK.md`).
+4. Umleitung im Router einrichten: siehe [NETZWERK.md](NETZWERK.md), mit Beispielen für verschiedene Router. Meldet sich der Ofen 10 Minuten nach dem Einrichten nicht, erscheint unter *Einstellungen → Reparaturen* ein Hinweis.
 5. Die Umleitung wirkt nur auf **neue** Verbindungen. Den Ofen deshalb einmal kurz stromlos machen; danach meldet er sich innerhalb einer Minute.
 6. Wird die Umleitung wieder entfernt, verbindet sich der Ofen von selbst wieder mit der MCZ-Cloud, sobald diese Integration die Verbindung schließt (z. B. Integration deaktivieren).
 

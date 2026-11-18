@@ -11,7 +11,7 @@
         "data_description": {
           "port": "TCP port on which this integration waits for the stove. Your router must redirect the stove's cloud connection to this port."
         },
-        "description": "The stove connects to this server instead of the MCZ cloud.",
+        "description": "The stove connects to this server instead of the MCZ cloud. Afterwards your router must redirect the stove's connection to Home Assistant: see the network guide in the documentation.",
         "title": "MCZ Maestro (local)"
       }
     }
@@ -208,6 +208,12 @@
     },
     "value_out_of_range": {
       "message": "Value must be between {min} and {max}."
+    }
+  },
+  "issues": {
+    "stove_not_connected": {
+      "description": "The stove has not connected to Home Assistant on port {port}. Your router must redirect the stove's connection to the MCZ cloud (TCP 9000) to Home Assistant. If the stove and Home Assistant are in the same network, a masquerade rule is also needed. Afterwards briefly cut the power to the stove. See the network guide (\"Learn more\").",
+      "title": "Stove has not connected"
     }
   },
   "options": {

@@ -11,7 +11,7 @@
         "data_description": {
           "port": "TCP-Port, auf dem diese Integration auf den Ofen wartet. Der Router muss die Cloud-Verbindung des Ofens auf diesen Port umleiten."
         },
-        "description": "Der Ofen verbindet sich mit diesem Server statt mit der MCZ-Cloud.",
+        "description": "Der Ofen verbindet sich mit diesem Server statt mit der MCZ-Cloud. Danach muss dein Router die Verbindung des Ofens auf Home Assistant umleiten: siehe docs/NETZWERK.md in der Dokumentation.",
         "title": "MCZ Maestro (lokal)"
       }
     }
@@ -208,6 +208,12 @@
     },
     "value_out_of_range": {
       "message": "Der Wert muss zwischen {min} und {max} liegen."
+    }
+  },
+  "issues": {
+    "stove_not_connected": {
+      "description": "Der Ofen hat sich nicht bei Home Assistant auf Port {port} gemeldet. Dein Router muss die Verbindung des Ofens zur MCZ-Cloud (TCP 9000) auf Home Assistant umleiten. Sind Ofen und Home Assistant im selben Netz, braucht es zusätzlich eine Masquerade-Regel. Danach den Ofen kurz stromlos machen. Siehe die Netzwerk-Anleitung („Mehr erfahren“).",
+      "title": "Ofen hat sich nicht gemeldet"
     }
   },
   "options": {
