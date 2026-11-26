@@ -21,7 +21,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
 from . import protocol as P
-from .const import MIN_WRITE_GAP_S, SLOW_POLL_EVERY
+from .const import ERROR_HOLD_S, MIN_WRITE_GAP_S, SLOW_POLL_EVERY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,6 +63,8 @@ class StoveStatus:
     remote_address: str | None = None  # von wo die Ofen-Verbindung kommt
     connected_since: float | None = None
     disconnected_since: float | None = None
+    error_seen: float | None = None  # time.time() der letzten Störungs-Zeile
+    error_state: int | None = None  # Zustandsnummer dieser Störung (50-69)
 
 
 # --- HTTP / WebSocket-Hilfen -------------------------------------------------
@@ -341,7 +343,7 @@ class McZServer:
         kind = frame[:3]
         try:
             if kind == "01|":
-                self.status.info = P.decode_info(frame)
+                self.status.info = self._hold_error(P.decode_info(frame))
                 self.status.last_info = time.time()
             elif kind == "03|":
                 self.status.extra = P.decode_extra(frame)
@@ -355,6 +357,36 @@ class McZServer:
             _LOGGER.warning("Antwort des Ofens nicht lesbar (%s): %s", kind, err)
             return
         self._notify()
+
+    def _hold_error(self, info: dict[str, Any]) -> dict[str, Any]:
+        """Störung nicht flackern lassen.
+
+        Meldet der Ofen kurz nach einer Störung nur „schaltet ab“ oder „kühlt ab“,
+        bleibt es eine Störung, bis ERROR_HOLD_S ohne Störungs-Zeile vergangen sind.
+        Zündet oder brennt er wieder, oder ist er ganz aus, gilt das sofort.
+        """
+        now = time.time()
+        if info.get("state_key") == "error":
+            self.status.error_seen = now
+            self.status.error_state = info.get("state")
+            return info
+        seen = self.status.error_seen
+        if (
+            seen is not None
+            and now - seen < ERROR_HOLD_S
+            and info.get("state_key") in P.SHUTDOWN_KEYS
+        ):
+            return {
+                **info,
+                "state_key": "error",
+                "burning": False,
+                "error_held": True,
+                "reported_state": info.get("state"),
+                "state": self.status.error_state,
+            }
+        self.status.error_seen = None
+        self.status.error_state = None
+        return info
 
     # Verbindungsaufbau
     async def _handle(

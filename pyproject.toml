@@ -1,6 +1,6 @@
 [project]
 name = "mcz-local"
-version = "0.4.0"
+version = "0.5.4"
 description = "Home-Assistant-Integration für MCZ-Pelletöfen (Maestro) ohne Cloud"
 requires-python = ">=3.14"
 license = "Apache-2.0"

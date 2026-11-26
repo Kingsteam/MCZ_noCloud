@@ -111,3 +111,38 @@ async def test_garbage_answer_is_ignored(server):
     await stove.ping()
     assert server.status.connected
     await stove.close()
+
+
+async def test_error_does_not_flicker(server, monkeypatch):
+    """Störung bleibt, auch wenn der Ofen dazwischen „schaltet ab“ meldet."""
+    from custom_components.mcz_local import server as server_mod
+
+    from .conftest import make_info_line
+
+    now = [1000.0]
+    monkeypatch.setattr(server_mod.time, "time", lambda: now[0])
+
+    def feed(state: int) -> dict:
+        server.on_answer(make_info_line({1: state}))
+        return server.status.info
+
+    assert feed(52)["state_key"] == "error"
+    now[0] += 5
+    held = feed(40)  # schaltet ab
+    assert held["state_key"] == "error" and held["error_held"]
+    assert held["state"] == 52 and held["reported_state"] == 40
+    assert held["burning"] is False
+    now[0] += 5
+    assert feed(52)["state_key"] == "error"
+    now[0] += 30
+    assert feed(41)["state_key"] == "error"  # kühlt ab, noch in der Haltezeit
+    # nach Ablauf der Haltezeit ohne neue Störungs-Zeile gilt wieder der echte Zustand
+    now[0] += 61
+    assert feed(41)["state_key"] == "cooling"
+    # ganz aus oder neu gezündet: sofort, auch in der Haltezeit
+    feed(52)
+    now[0] += 5
+    assert feed(0)["state_key"] == "off"
+    feed(52)
+    now[0] += 5
+    assert feed(3)["state_key"] == "loading_cold"
