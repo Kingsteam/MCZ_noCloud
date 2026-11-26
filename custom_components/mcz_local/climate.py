@@ -28,6 +28,11 @@ from .entity import McZEntity
 OFF_STATES = frozenset({"off", "switching_off", "cooling", "error"})
 IDLE_STATES = frozenset({"standby", "auto_eco"})
 
+# Seit HA 2026.11 liefert ein Thermostat seine Temperaturen als native_*-Werte;
+# die alten Namen gelten als veraltet (Warnung, ab 2027.11 ohne Funktion).
+# Ältere HA-Versionen kennen native_* noch nicht: dann die alten Namen bereitstellen.
+NATIVE_API = hasattr(ClimateEntity, "native_current_temperature")
+
 DESCRIPTION = ClimateEntityDescription(
     key="climate", translation_key="stove", name=None
 )
@@ -60,7 +65,10 @@ class McZClimate(McZEntity, ClimateEntity):
         | ClimateEntityFeature.TURN_ON
         | ClimateEntityFeature.TURN_OFF
     )
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    if NATIVE_API:
+        _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    else:  # HA vor 2026.11
+        _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_target_temperature_step = 0.5
     _attr_min_temp = SETPOINT_MIN_C
     _attr_max_temp = SETPOINT_MAX_C
@@ -95,7 +103,7 @@ class McZClimate(McZEntity, ClimateEntity):
         return self._server.status.info
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         """Externer Raumfühler, falls eingestellt und gültig, sonst Ofenfühler."""
         if self._room_sensor and (state := self.hass.states.get(self._room_sensor)):
             try:
@@ -105,8 +113,18 @@ class McZClimate(McZEntity, ClimateEntity):
         return self._info.get("ambient_temperature")
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         return self._info.get("temperature_setpoint")
+
+    if not NATIVE_API:  # HA vor 2026.11: alte Namen, gleiche Werte
+
+        @property
+        def current_temperature(self) -> float | None:
+            return self.native_current_temperature
+
+        @property
+        def target_temperature(self) -> float | None:
+            return self.native_target_temperature
 
     @property
     def hvac_mode(self) -> HVACMode | None:
