@@ -102,6 +102,8 @@ STATES: dict[int, str] = {
     49: "filling_auger",
 }
 ERROR_STATES = range(50, 70)
+# Abschalten und Abkühlen: Zustände, die nach einer Störung noch als Störung gelten
+SHUTDOWN_KEYS = frozenset({"switching_off", "cooling"})
 BURNING_STATES = frozenset(range(1, 16)) | {31}
 
 

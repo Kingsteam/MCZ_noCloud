@@ -44,6 +44,10 @@ NETWORK_DOCS_URL: Final = (
 )
 # Uhr des Ofens stellen: bei jeder Anmeldung und danach so oft (Sekunden)
 CLOCK_SYNC_INTERVAL_S: Final = 6 * 3600
+# Nach einer Störung so lange (Sekunden) „Störung“ halten, solange der Ofen nur
+# abschaltet oder abkühlt. Am 18.11.2026 wechselte die Statuszeile während einer
+# Störung alle 5 bis 10 s zwischen Störung und „schaltet ab“.
+ERROR_HOLD_S: Final = 60
 
 # ---------------------------------------------------------------------------
 # SICHERHEIT - Grenzen für Befehle an den Ofen

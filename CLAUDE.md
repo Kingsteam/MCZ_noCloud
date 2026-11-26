@@ -72,3 +72,5 @@ Jeder Schritt auf eigenem Zweig → Tests und Linter lokal grün → pushen → 
 - Phase 3 (Sensoren, Binärsensoren, Test-Instanz, Handbuch) fertig, Version 0.3.0.
 - Phase 4 (Schalten mit Schutzgrenzen, Raumfühler-Option) fertig, Version 0.4.0, **nur simuliert getestet**. Befehl 34 (Ein/Aus) nicht im Mitschnitt bestätigt.
 - Lesetest mit echtem Ofen erfolgreich (Server-Code auf einem Rechner, nicht in HA): Werte stimmen. Integration selbst noch nicht auf echter Hardware. Raumfühler im Ofen misst zu hoch → Heizungssteuerung mit externen Fühlern. Zusätzlich lokal gegen einen Nachbau aus einem echten Mitschnitt geprüft (Daten nicht im Repo). **Noch nicht mit echter Hardware getestet.**
+- 0.5.4: Störung halten (`server._hold_error`, `ERROR_HOLD_S` 60 s, nur gegen `protocol.SHUTDOWN_KEYS`): am 18.11. flackerte die Statuszeile zwischen Störung und `switching_off`. Gehaltene Zeilen haben `error_held`, `reported_state`.
+- Seit 26.11.2026 entwickelt die Sitzung „Pelletofen“ (Wärmeregie) auch diese Integration. HA-Neustarts vorher im Postfach (privates Haus-Repo, `postfach/an-haus.md`) ankündigen und auf Konflikte warten.

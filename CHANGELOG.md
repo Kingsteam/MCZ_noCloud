@@ -4,6 +4,11 @@ Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-11-26
+### Behoben
+- **Die Störung flackert nicht mehr.** Bei einer Störung (am echten Ofen am 18.11. gesehen, nach einem fehlgeschlagenen Kaltstart) wechselte die Statuszeile alle 5 bis 10 Sekunden zwischen „Störung“ und „schaltet ab“, und das über längere Zeit. Thermostat und Sensor „Störung“ sprangen dabei ständig hin und her.
+- Jetzt bleibt es eine Störung, solange der Ofen nur abschaltet oder abkühlt, bis 60 Sekunden ohne neue Störungsmeldung vergangen sind. Ist er ganz aus oder zündet er wieder, gilt das sofort.
+
 ## [0.5.3] - 2026-11-19
 ### Behoben
 - Bei einer Störung (z. B. Pelletbehälter leer) zeigte das Thermostat weiter „Heizen“. Das hat eine Steuerung (Wärmeregie) glauben lassen, der Ofen laufe. Jetzt zeigt es „Aus“.
