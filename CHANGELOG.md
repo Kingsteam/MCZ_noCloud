@@ -3,6 +3,8 @@
 Alle nennenswerten Änderungen. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach [SemVer](https://semver.org/lang/de/).
 
 ## [Unreleased]
+
+## [0.5.5] - 2026-11-26
 ### Geändert
 - Thermostat nutzt die neuen `native_*`-Werte von Home Assistant 2026.11 (Ist-, Solltemperatur, Einheit). Damit verschwinden die drei Warnungen „provides the deprecated …“ im Protokoll; ab HA 2027.11 hätte das alte Verfahren nicht mehr funktioniert. Mit älteren HA-Versionen läuft es wie bisher.
 
